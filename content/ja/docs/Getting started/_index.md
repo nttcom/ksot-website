@@ -48,7 +48,15 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 
 ## 検証用のGithubレポジトリの作成
 
-TBD
+KuestaのGitOpsを用いてネットワーク装置に設定を行うには、2つのGitHubレポジトリを作成する必要があります。
+1つ目はGitOpsの起点となるコンフィグ管理レポジトリで、2つ目はネットワーク装置の実際のコンフィグの変更履歴を管理するレポジトリです。
+[Kuesta Example](https://github.com/nttcom/kuesta-example) レポジトリをテンプレートとして使用することで、これらのレポジトリを簡単に作成できます。
+
+以下を2回実行して、2つのGitHubレポジトリを作成してください。
+
+1. [Kuesta Example](https://github.com/nttcom/kuesta-example) レポジトリの **Use this template** ボタンをクリックしてください。
+
+2. レポジトリ名を入力して、 **Create repository from template** ボタンをクリックしてください。レポジトリの公開・非公開については、好きな方を選択してください。
 
 
 ## Kuestaと検証用サンプルリソースのインストール

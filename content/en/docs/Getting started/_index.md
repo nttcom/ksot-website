@@ -45,9 +45,17 @@ CoreDNS is running at https://127.0.0.1:52096/api/v1/namespaces/kube-system/serv
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ```
 
-## Setup your own GitHub repositories
+## Set up GitHub source repositories for testing
 
-TBD
+To configure network devices using Kuesta's GitOps, you need to set up 2 GitHub repositories. One is for
+the configuration source repository, and the other is for the update history of network devices' actual configuration status.
+You can easily set up these repositories using [Kuesta Example](https://github.com/nttcom/kuesta-example) repository as a template.
+
+Run the following 2 times to create the repository pair:
+
+1. Click **Use this template** button of [Kuesta Example repository](https://github.com/nttcom/kuesta-example).
+
+2. Select a name for your new repository and click **Create repository from template**. You can choose either public or private whichever you prefer.
 
 
 ## Install Kuesta and sample resources
