@@ -42,40 +42,19 @@ cue -t imageRegistry=<your_image_registry> -t version=<your_version> install
 Provide required parameters according to the instructions:
 
 ```bash
-Github repository for config: https://github.com/<your_org>/<your_config_repo>
-Github repository for status: https://github.com/<your_org>/<your_status_repo>
-Are these repositories private? (yes|no): no
-Do you need sample driver and emulator for trial?: (yes|no) no
-
----
-Github Config Repository: https://github.com/<your_org>/<your_config_repo>
-Github Status Repository: https://github.com/<your_org>/<your_status_repo>
-Use Private Repo: false
-
-Image Registry: ghcr.io/nttcom/kuesta
-Version: latest
-Deploy sample driver and emulator: false
----
-
-Continue? (yes|no) yes
-```
-
-If you want to use private repo, you also need to Github [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) (PAT) and provide it as follows:
-
-```bash
-Github repository for config: https://github.com/<your_org>/<your_config_repo>
-Github repository for status: https://github.com/<your_org>/<your_status_repo>
-Are these repositories private? (yes|no): yes
-Github username: <your_username>
-Github private access token: <your_private_access_token>
+GitHub repository for config: https://github.com/<your_org>/<your_config_repo>
+GitHub repository for status: https://github.com/<your_org>/<your_status_repo>
+GitHub username: <your_username>
+GitHub private access token: <your_private_access_token>
+Are these git repositories private? (yes|no): yes
 Do you need sample driver and emulator for trial?: (yes|no) yes
 
 ---
-Github Config Repository: https://github.com/<your_org>/<your_config_repo>
-Github Status Repository: https://github.com/<your_org>/<your_status_repo>
+GitHub Config Repository: https://github.com/<your_org>/<your_config_repo>
+GitHub Status Repository: https://github.com/<your_org>/<your_status_repo>
+GitHub Username: <your_username>
+GitHub Access Token: ***
 Use Private Repo: true
-Github Username: <your_username>
-Github Access Token: ***
 
 Image Registry: ghcr.io/nttcom/kuesta
 Version: latest
@@ -85,8 +64,10 @@ Deploy sample driver and emulator: true
 Continue? (yes|no) yes
 ```
 
-PAT provided here is stored in Secret named `kuesta-system/kuesta-secrets` for kuesta-server to operator git clone, pull, push and create PullRequest.
-You might also use this PAT when you set up `GitRepository` if you use Git over HTTPS, to grant Flux source-controller to conduct git operations with your private repository.
+For Kuesta to perform git-push and create pull-request, you need to prepare a GitHub [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) (PAT) and provide it in the installation.
+PAT provided here is stored in a Secret named `kuesta-system/kuesta-secrets` for kuesta-server to operator git clone, pull, push and create PullRequest.
+
+You can also use this PAT when you set up `GitRepository` to watch your private repository via Git over HTTPS, to grant Flux source-controller to conduct git operations with your private repository.
 
 
 ## Configuring GitOps with Flux source-controller

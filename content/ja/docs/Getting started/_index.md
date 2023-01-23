@@ -64,41 +64,19 @@ cue install
 プロンプトが表示されますので、指示に従ってパラメータを入力してください。
 
 ```bash
-Github repository for config: https://github.com/<your_org>/<your_config_repo>
-Github repository for status: https://github.com/<your_org>/<your_status_repo>
-Are these repositories private? (yes|no): no
+GitHub repository for config: https://github.com/<your_org>/<your_config_repo>
+GitHub repository for status: https://github.com/<your_org>/<your_status_repo>
+GitHub username: <your_username>
+GitHub private access token: <your_private_access_token>
+Are these git repositories private? (yes|no): no
 Do you need sample driver and emulator for trial?: (yes|no) yes
 
 ---
-Github Config Repository: https://github.com/<your_org>/<your_config_repo>
-Github Status Repository: https://github.com/<your_org>/<your_status_repo>
-Use Private Repo: false
-
-Image Registry: ghcr.io/nttcom/kuesta
-Version: latest
-Deploy sample driver and emulator: true
----
-
-Continue? (yes|no) yes
-```
-
-もし検証用にプライベートレポジトリを使いたい場合は、Githubの [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) (PAT) が必要です。
-PATを取得して、以下の通り入力してください。
-
-```bash
-Github repository for config: https://github.com/<your_org>/<your_config_repo>
-Github repository for status: https://github.com/<your_org>/<your_status_repo>
-Are these repositories private? (yes|no): yes
-Github username: <your_username>
-Github private access token: <your_private_access_token>
-Do you need sample driver and emulator for trial?: (yes|no) yes
-
----
-Github Config Repository: https://github.com/<your_org>/<your_config_repo>
-Github Status Repository: https://github.com/<your_org>/<your_status_repo>
+GitHub Config Repository: https://github.com/<your_org>/<your_config_repo>
+GitHub Status Repository: https://github.com/<your_org>/<your_status_repo>
+GitHub Username: <your_username>
+GitHub Access Token: ***
 Use Private Repo: true
-Github Username: <your_username>
-Github Access Token: ***
 
 Image Registry: ghcr.io/nttcom/kuesta
 Version: latest
@@ -108,6 +86,7 @@ Deploy sample driver and emulator: true
 Continue? (yes|no) yes
 ```
 
+KuestaはGitへのプッシュやプルリクエストの作成を行うため、GitHubの [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) (PAT) が必要です。
 ここで入力されたPATは、ローカルのKubernetesクラスタ内のSecretリソースにのみ保存されます。ローカルのKubernetesクラスタを削除することで、どこにもデータを残さずに完全に削除できます。
 
 インストールスクリプトの実行が完了したら、 `kubectl` コマンドを実行することで何がインストールされたかを確認できます。
@@ -285,7 +264,7 @@ kubectl -n kuesta-system port-forward svc/kuesta-server 9339:9339
 gnmic -a :9339 -u dummy -p dummy set --replace-path "/services/service[kind=oc_circuit][vlanID=100]" --encoding JSON --insecure --replace-file oc-circuit-vlan100.json
 ```
 
-4: GithubのWebコンソールを用いて、本チュートリアル向けに作成したコンフィグ用のGithubレポジトリのプルリクエスト(PullRequest: PR)を確認してください。
+4: GitHubのWebコンソールを用いて、本チュートリアル向けに作成したコンフィグ用のGitHubレポジトリのプルリクエスト(PullRequest: PR)を確認してください。
 [PR一覧](https://github.com/<your_org>/<your_config_repo>/pulls) にアクセスすると、 `[kuesta] Automated PR` というタイトルのPRが確認できます。
 PRのコメントを見ると、どのServiceとどのネットワーク装置が変更されたのかがわかりますし、 `Files changed` タブを確認すると詳細な変更点が確認できます。
 
@@ -303,7 +282,7 @@ kuesta-testdata   Healthy   Completed
 ```
 
 
-6: GithubのWebコンソール上で、PRをマージしてください。その後、 `DeviceRollout` をモニターしているターミナル画面に移動してください。
+6: GitHubのWebコンソール上で、PRをマージしてください。その後、 `DeviceRollout` をモニターしているターミナル画面に移動してください。
 1分以内に、 `DeviceRollout` の `STATUS` が `Running` に変わり、その後 `Completed` に変わることを確認してください。
 
 ```bash

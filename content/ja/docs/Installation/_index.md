@@ -43,52 +43,32 @@ cue -t imageRegistry=<your_image_registry> -t version=<your_version> install
 プロンプトが表示されますので、指示に従ってパラメータを入力してください。
 
 ```bash
-Github repository for config: https://github.com/<your_org>/<your_config_repo>
-Github repository for status: https://github.com/<your_org>/<your_status_repo>
-Are these repositories private? (yes|no): no
-Do you need sample driver and emulator for trial?: (yes|no) no
+GitHub repository for config: https://github.com/<your_org>/<your_config_repo>
+GitHub repository for status: https://github.com/<your_org>/<your_status_repo>
+GitHub username: <your_username>
+GitHub private access token: <your_private_access_token>
+Are these git repositories private? (yes|no): no
+Do you need sample driver and emulator for trial?: (yes|no) yes
 
 ---
-Github Config Repository: https://github.com/<your_org>/<your_config_repo>
-Github Status Repository: https://github.com/<your_org>/<your_status_repo>
-Use Private Repo: false
-
-Image Registry: ghcr.io/nttcom/kuesta
-Version: latest
-Deploy sample driver and emulator: false
----
-
-Continue? (yes|no) yes
-```
-
-もし検証用にプライベートレポジトリを使いたい場合は、Githubの [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) (PAT) が必要です。
-PATを取得して、以下の通り入力してください。
-
-```bash
-Github repository for config: https://github.com/<your_org>/<your_config_repo>
-Github repository for status: https://github.com/<your_org>/<your_status_repo>
-Are these repositories private? (yes|no): yes
-Github username: <your_username>
-Github private access token: <your_private_access_token>
-Do you need sample driver and emulator for trial?: (yes|no) no
-
----
-Github Config Repository: https://github.com/<your_org>/<your_config_repo>
-Github Status Repository: https://github.com/<your_org>/<your_status_repo>
+GitHub Config Repository: https://github.com/<your_org>/<your_config_repo>
+GitHub Status Repository: https://github.com/<your_org>/<your_status_repo>
+GitHub Username: <your_username>
+GitHub Access Token: ***
 Use Private Repo: true
-Github Username: <your_username>
-Github Access Token: ***
 
 Image Registry: ghcr.io/nttcom/kuesta
 Version: latest
-Deploy sample driver and emulator: false
+Deploy sample driver and emulator: true
 ---
 
 Continue? (yes|no) yes
 ```
 
+KuestaはGitへのプッシュやプルリクエストの作成を行うため、GitHubの [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) (PAT) が必要です。
 上記で入力したPATは `kuesta-system/kuesta-secrets` という `Secret` リソースに保存され、kuestaサーバが git clone・pull・push・PullRequest作成を行うために使用されます。
-また、Gitレポジトリサーバに対してHTTPSで接続したい場合は、`GitRepository` を作成する際にこのPATを使うこともできます。Flux source-controllerにGitプライベートレポジトリへのアクセスを許可するために使用されます。
+
+また、非公開のGitレポジトリサーバに対してHTTPSで接続したい場合は、`GitRepository` を作成する際にこのPATを使うこともできます。Flux source-controllerにGitプライベートレポジトリへのアクセスを許可するために使用されます。
 
 
 ## Flux source-controllerを用いてGitOpsを設定する

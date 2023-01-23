@@ -45,7 +45,7 @@ CoreDNS is running at https://127.0.0.1:52096/api/v1/namespaces/kube-system/serv
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ```
 
-## Setup your own Github repositories
+## Setup your own GitHub repositories
 
 TBD
 
@@ -63,40 +63,19 @@ cue install
 Provide required parameters according to the instructions:
 
 ```bash
-Github repository for config: https://github.com/<your_org>/<your_config_repo>
-Github repository for status: https://github.com/<your_org>/<your_status_repo>
-Are these repositories private? (yes|no): no
+GitHub repository for config: https://github.com/<your_org>/<your_config_repo>
+GitHub repository for status: https://github.com/<your_org>/<your_status_repo>
+GitHub username: <your_username>
+GitHub private access token: <your_private_access_token>
+Are these git repositories private? (yes|no): yes
 Do you need sample driver and emulator for trial?: (yes|no) yes
 
 ---
-Github Config Repository: https://github.com/<your_org>/<your_config_repo>
-Github Status Repository: https://github.com/<your_org>/<your_status_repo>
-Use Private Repo: false
-
-Image Registry: ghcr.io/nttcom/kuesta
-Version: latest
-Deploy sample driver and emulator: true
----
-
-Continue? (yes|no) yes
-```
-
-If you want to use private repo, you also need to Github [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) (PAT) and provide it as follows:
-
-```bash
-Github repository for config: https://github.com/<your_org>/<your_config_repo>
-Github repository for status: https://github.com/<your_org>/<your_status_repo>
-Are these repositories private? (yes|no): yes
-Github username: <your_username>
-Github private access token: <your_private_access_token>
-Do you need sample driver and emulator for trial?: (yes|no) yes
-
----
-Github Config Repository: https://github.com/<your_org>/<your_config_repo>
-Github Status Repository: https://github.com/<your_org>/<your_status_repo>
+GitHub Config Repository: https://github.com/<your_org>/<your_config_repo>
+GitHub Status Repository: https://github.com/<your_org>/<your_status_repo>
+GitHub Username: <your_username>
+GitHub Access Token: ***
 Use Private Repo: true
-Github Username: <your_username>
-Github Access Token: ***
 
 Image Registry: ghcr.io/nttcom/kuesta
 Version: latest
@@ -106,6 +85,7 @@ Deploy sample driver and emulator: true
 Continue? (yes|no) yes
 ```
 
+For Kuesta to perform git-push and create pull-request, you need to prepare a GitHub [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) (PAT) and provide it in the installation.
 Since PAT provided here is stored only in Secret resources on your local Kubernetes cluster, you can remove them safely and completely by [cleaning up your local cluster](/docs/getting-started/#clean-up).
 
 After running an installation script, you can see what is installed by running `kubectl` commands:
@@ -284,7 +264,7 @@ kubectl -n kuesta-system port-forward svc/kuesta-server 9339:9339
 gnmic -a :9339 -u dummy -p dummy set --replace-path "/services/service[kind=oc_circuit][vlanID=100]" --encoding JSON --insecure --replace-file oc-circuit-vlan100.json
 ```
 
-4: Check the PullRequest(PR) in your configuration repository on Github web console. Access [PR list](https://github.com/<your_org>/<your_config_repo>/pulls) then you will find the PR which titles as `[kuesta] Automated PR`. You can see what services and devices are configured by this PR on the PR comment, and their details from the `Files changed` tab.
+4: Check the PullRequest(PR) in your configuration repository on GitHub web console. Access [PR list](https://github.com/<your_org>/<your_config_repo>/pulls) then you will find the PR which titles as `[kuesta] Automated PR`. You can see what services and devices are configured by this PR on the PR comment, and their details from the `Files changed` tab.
 
 5: Before merging PR branch, it is better to monitor `DeviceRollout` resource, which conducts a device configuration rollout. Run monitor with `kubectl`:
 
@@ -300,7 +280,7 @@ kuesta-testdata   Healthy   Completed
 ```
 
 
-6: Merge the PR on Github web console, and go to the terminal where `DeviceRollout` monitor running.
+6: Merge the PR on GitHub web console, and go to the terminal where `DeviceRollout` monitor running.
 In one minute, you will see `DeviceRollout` status changes to `Running`, then changes back to `Completed` again.
 
 ```bash
