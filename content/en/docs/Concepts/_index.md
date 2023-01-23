@@ -15,13 +15,13 @@ To provide a data model which can represent the user intent easily, an abstracte
 In addition, the high-level data model which effects multiple network device configs is needed for domain-wide abstraction such as E2E connectivity.
 
 These high-level data model abstraction causes the additional complexity of the high-to-low data mapping logic.
-The relations between the high-level model and the low-level actual device configs are many-to-many, we need to consider performing data mapping and data composition without data loss, conflicts, and type constraint violation.
+The relations between the high-level model and the low-level actual device configs are many-to-many, we need to consider performing data composition in addition to high-to-low data mapping without data loss, conflicts, and type constraint violation.
 A simple text-templating approach using Python/Jinja is not enough to solve this complex problem.
 
-Kuesta uses CUE as a programming language of high-to-low data mapping logic. CUE is a configuration language specialized in data unification and validation, and is well-suited for the above usecase:
+Kuesta uses [CUE](https://github.com/cue-lang/cue) as a programming language of high-to-low data mapping logic. CUE is a configuration language specialized in data unification and validation, and is well-suited for the above usecase for the following reasons:
 - CUE enables us to unify multiple document-tree in the arbitrary layer. CUE is designed to ensure combining CUE values in any order always gives the same result (associative, commutative, and idempotent).
 - CUE merges types and values into a single concept. Even types and constraints are the kind of value, the only difference between them is that they do not have concrete value. Due to this novel approach, we can declare constraints and schema simply and efficiently in the configuration data itself.
-- Cue is highly programmable and supports software coding practices like templating and modularization. We can take the same advantages as if we use general-purpose language.
+- CUE is highly programmable and supports software coding practices like templating and modularization. We can take the same advantages as if we use general-purpose language.
 
 To learn more about CUE, see ["cuelang.org"](https://cuelang.org/docs/about/).
 
@@ -58,9 +58,9 @@ Kuesta consists of the following components:
 
 - **FluxCD source-controller** detects manifest changes of the specified Git repository at `GitRepository` Kubernetes custom resource.
 
-- **kuesta-provisioner** consists of the gitrepository-watcher controller and `DeviceRollout` Kubernetes custom resource. `gitrepository-watcher` watches `GitRepository` status to detect the manifest changes and updates `DeviceRollout` status  to `running` when change is detected, which triggers the device config update transaction.
+- **kuesta-provisioner** consists of the `gitrepository-watcher` controller and `DeviceRollout` Kubernetes custom resource. `gitrepository-watcher` watches `GitRepository` status to detect the manifest changes and updates `DeviceRollout` status  to `running` when change is detected, which triggers the device config update transaction.
 
 To configure network devices using Kuesta, you must prepare your own Kubernetes custom operator to configure your target devices.
 It is recommended to use [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) which is the powerful framework to build your Kubernetes custom operator.
-You can also start from [device-operator](https://github.com/nttcom/kuesta/tree/main/device-operator) used at the [getting-started](/docs/getting-started), the sample Kubernetes custom operator designed to configure OpenConfig/gNMI device.
+You can also start from [device-operator](https://github.com/nttcom/kuesta/tree/main/device-operator) used at the ["Getting started"](/docs/getting-started), the sample Kubernetes custom operator designed to configure OpenConfig/gNMI device.
 It is built using kubebuilder.
