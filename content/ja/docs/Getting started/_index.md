@@ -20,7 +20,7 @@ description: >
 2. [kubectl](https://kubernetes.io/docs/tasks/tools/) をインストールしてください。Kubernetesクラスタに対してコマンドを実行する際に使用します。
 3. [cue](https://cuelang.org/docs/install/) をインストールしてください。Kuestaのインストールスクリプトの実行に必要です。
 4. [gnmic](https://gnmic.kmrd.dev/install/) をインストールしてください。Kuestaサーバに対してgNMIリクエストを行うために必要です。
-
+5. [golang](https://go.dev/doc/install) をインストールしてください。カスタムコントローラーのツール類を使用するために必要です。
 
 ## ローカルKubernetesクラスタの立ち上げ
 
