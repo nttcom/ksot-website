@@ -16,11 +16,12 @@ description: >
 
 ## 事前準備 
 
-1. [kind](https://kind.sigs.k8s.io/docs/user/quick-start/) をインストールしてください。ローカルのKubernetesクラスタの構築に使用します。
-2. [kubectl](https://kubernetes.io/docs/tasks/tools/) をインストールしてください。Kubernetesクラスタに対してコマンドを実行する際に使用します。
-3. [cue](https://cuelang.org/docs/install/) をインストールしてください。Kuestaのインストールスクリプトの実行に必要です。
-4. [gnmic](https://gnmic.kmrd.dev/install/) をインストールしてください。Kuestaサーバに対してgNMIリクエストを行うために必要です。
-5. [golang](https://go.dev/doc/install) をインストールしてください。カスタムコントローラーのツール類を使用するために必要です。
+1. [golang v1.18+](https://go.dev/doc/install) をインストールしてください。カスタムコントローラーのツール類を使用するために必要です。
+2. [docker](https://docs.docker.com/engine/install) をインストールしてください。kindの実行に必要です。
+3. [kind](https://kind.sigs.k8s.io/docs/user/quick-start/) をインストールしてください。ローカルのKubernetesクラスタの構築に使用します。
+4. [kubectl](https://kubernetes.io/docs/tasks/tools/) をインストールしてください。Kubernetesクラスタに対してコマンドを実行する際に使用します。
+5. [cue v0.4.x](https://cuelang.org/docs/install/) をインストールしてください。Kuestaのインストールスクリプトの実行に必要です。
+6. [gnmic](https://gnmic.kmrd.dev/install/) をインストールしてください。Kuestaサーバに対してgNMIリクエストを行うために必要です。
 
 ## ローカルKubernetesクラスタの立ち上げ
 
