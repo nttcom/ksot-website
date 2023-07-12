@@ -16,12 +16,12 @@ This tutorial shows you how to
 
 ## Prerequisites
 
-1. [Install golang v1.18+](https://go.dev/doc/install) to use controller-tools.
-2. [Install docker](https://docs.docker.com/engine/install) to use cluster in kind.
-3. [Install kind](https://kind.sigs.k8s.io/docs/user/quick-start/) to set up local Kubernetes cluster.
-4. [Install kubectl](https://kubernetes.io/docs/tasks/tools/) to run commands against Kubernetes clusters.
-5. [Install cue v0.4.x](https://cuelang.org/docs/install/) to run Kuesta installation script.
-6. [Install gnmic](https://gnmic.kmrd.dev/install/) to perform gNMI request to kuesta server.
+1. [Install golang (latest)](https://go.dev/doc/install) to use controller-tools.
+2. [Install docker (latest)](https://docs.docker.com/engine/install) to use cluster in kind.
+3. [Install kind (latest)](https://kind.sigs.k8s.io/docs/user/quick-start/) to set up local Kubernetes cluster.
+4. [Install kubectl (latest)](https://kubernetes.io/docs/tasks/tools/) to run commands against Kubernetes clusters.
+5. [Install cue (v0.4.x)](https://cuelang.org/docs/install/) to run Kuesta installation script.
+6. [Install gnmic (latest)](https://gnmic.kmrd.dev/install/) to perform gNMI request to kuesta server.
 
 
 ## Create a local Kubernetes cluster
@@ -95,7 +95,7 @@ Deploy sample driver and emulator: true
 Continue? (yes|no) yes
 ```
 
-For Kuesta to perform git-push and create pull-request, you need to prepare a GitHub [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) (PAT) and provide it in the installation.
+For Kuesta to perform git-push and create pull-request, you need to prepare a GitHub [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) (PAT) and provide it in the installation.(classic is recommended)
 Since PAT provided here is stored only in Secret resources on your local Kubernetes cluster, you can remove them safely and completely by [cleaning up your local cluster](/docs/getting-started/#clean-up).
 
 After running an installation script, you can see what is installed by running `kubectl` commands:
