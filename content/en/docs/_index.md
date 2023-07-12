@@ -10,5 +10,4 @@ menu:
 
 Kuesta is a cloud-native network configuration framework, enabling operators Infrastructure-as-Code of network equipments. It consists of CUE-based data mapper and some Kubernetes custom operators for GitOps, and provides us a rich network abstraction and automation.
 
-For more information, see the [Overview of Kuesta](/docs/concepts/ovewview/). 
 
