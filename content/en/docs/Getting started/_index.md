@@ -52,6 +52,7 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 To configure network devices using Kuesta's GitOps, you need to set up 2 GitHub repositories. One is for
 the configuration source repository, and the other is for the update history of network devices' actual configuration status.
 You can easily set up these repositories using [Kuesta Example](https://github.com/nttcom/kuesta-example) repository as a template.
+Repository must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character.
 
 Run the following 2 times to create the repository pair:
 
@@ -71,6 +72,7 @@ cue install
 ```
 
 Provide required parameters according to the instructions:
+The `GitHub repository for config` `GitHub repository for status` should specify each of the two Github repositories for verification that you have created.
 
 ```bash
 GitHub repository for config: https://github.com/<your_org>/<your_config_repo>
