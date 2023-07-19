@@ -16,12 +16,12 @@ This tutorial shows you how to
 
 ## Prerequisites
 
-1. [Install golang (latest)](https://go.dev/doc/install) to use controller-tools.
-2. [Install docker (latest)](https://docs.docker.com/engine/install) to use cluster in kind.
-3. [Install kind (latest)](https://kind.sigs.k8s.io/docs/user/quick-start/) to set up local Kubernetes cluster.
-4. [Install kubectl (latest)](https://kubernetes.io/docs/tasks/tools/) to run commands against Kubernetes clusters.
+1. [Install golang (v1.20.4+)](https://go.dev/doc/install) to use controller-tools.
+2. [Install docker (v20.10.24+)](https://docs.docker.com/engine/install) to use cluster in kind.
+3. [Install kind (v0.12.0+)](https://kind.sigs.k8s.io/docs/user/quick-start/) to set up local Kubernetes cluster.
+4. [Install kubectl (v1.25.4+)](https://kubernetes.io/docs/tasks/tools/) to run commands against Kubernetes clusters.
 5. [Install cue (v0.4.x)](https://cuelang.org/docs/install/) to run Kuesta installation script.
-6. [Install gnmic (latest)](https://gnmic.kmrd.dev/install/) to perform gNMI request to kuesta server.
+6. [Install gnmic (v0.26.0+)](https://gnmic.kmrd.dev/install/) to perform gNMI request to kuesta server.
 
 
 ## Create a local Kubernetes cluster
