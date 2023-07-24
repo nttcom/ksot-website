@@ -52,7 +52,7 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 KuestaのGitOpsを用いてネットワーク装置に設定を行うには、2つのGitHubレポジトリを作成する必要があります。
 1つ目はGitOpsの起点となるコンフィグ管理レポジトリで、2つ目はネットワーク装置の実際のコンフィグの変更履歴を管理するレポジトリです。
 [Kuesta Example](https://github.com/nttcom/kuesta-example) レポジトリをテンプレートとして使用することで、これらのレポジトリを簡単に作成できます。
-レポジトリ名は、小文字の英数字、'-'または'.'で構成され、英数字で始まり、英数字で終わる必要があります
+レポジトリ名は、小文字の英数字、'-'または'.'で構成され、英数字で始まり、英数字で終わる必要があります。
 
 以下を2回実行して、2つのGitHubレポジトリを作成してください。
 
@@ -72,7 +72,7 @@ cue install
 ```
 
 プロンプトが表示されますので、指示に従ってパラメータを入力してください。
-`GitHub repository for config` `GitHub repository for status`は作成した２つの検証用のGithubレポジトリをそれぞれ指定してください。
+`GitHub repository for config` `GitHub repository for status`は前項で作成した２つの検証用のGithubレポジトリをそれぞれ指定してください。
 
 ```bash
 GitHub repository for config: https://github.com/<your_org>/<your_config_repo>
@@ -97,7 +97,7 @@ Deploy sample driver and emulator: true
 Continue? (yes|no) yes
 ```
 
-KuestaはGitへのプッシュやプルリクエストの作成を行うため、GitHubの [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) (PAT) が必要です。(classic推奨)
+KuestaはGitへのプッシュやプルリクエストの作成を行うため、GitHubの [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) (PAT) が必要です(classic推奨)。
 ここで入力されたPATは、ローカルのKubernetesクラスタ内のSecretリソースにのみ保存されます。ローカルのKubernetesクラスタを削除することで、どこにもデータを残さずに完全に削除できます。
 
 インストールスクリプトの実行が完了したら、 `kubectl` コマンドを実行することで何がインストールされたかを確認できます。
