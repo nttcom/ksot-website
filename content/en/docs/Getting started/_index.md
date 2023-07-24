@@ -97,7 +97,7 @@ Deploy sample driver and emulator: true
 Continue? (yes|no) yes
 ```
 
-For Kuesta to perform git-push and create pull-request, you need to prepare a GitHub [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) (PAT) and provide it in the installation.(classic is recommended)
+For Kuesta to perform git-push and create pull-request, you need to prepare a GitHub [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) (PAT) and provide it in the installation(classic is recommended).
 Since PAT provided here is stored only in Secret resources on your local Kubernetes cluster, you can remove them safely and completely by [cleaning up your local cluster](/docs/getting-started/#clean-up).
 
 After running an installation script, you can see what is installed by running `kubectl` commands:
