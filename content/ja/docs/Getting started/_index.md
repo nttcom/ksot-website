@@ -263,16 +263,47 @@ import (
 }
 ```
 
+httpインターフェースを利用する場合、上に代わって以下JSONを作成してください。(pathにはServiceのパス、valueには投入するServiceの値を指定)
+
+```json
+{
+    "path": "/services/oc_circuit/100",
+    "value": {
+        "vlanID": 100,
+        "endpoints": [
+            {
+                "device": "oc01",
+                "port": 1
+            },
+            {
+                "device": "oc02",
+                "port": 1
+            }
+        ]
+    }
+}
+```
+
 2: ローカルのKubernetesクラスタで動作しているKuestaサーバのPodに対してポートフォワーディングしてください。
 
 ```bash
 kubectl -n kuesta-system port-forward svc/kuesta-server 9339:9339
 ```
 
-3: `gnmic` を用いて、Kuestaサーバに対してgNMI SetRequestを送ってください。
+httpインターフェースを利用する場合は以下です。
 
 ```bash
+kubectl -n kuesta-system port-forward svc/kuesta-server 8080:8080
+```
+
+3: `gnmic`を用いて、Kuestaサーバに対してgNMI SetRequestを送ってください。
+```bash
 gnmic -a :9339 -u dummy -p dummy set --replace-path "/services/service[kind=oc_circuit][vlanID=100]" --encoding JSON --insecure --replace-file oc-circuit-vlan100.json
+```
+
+httpインターフェースを利用する場合は、`curl`を用いてKuestaサーバに対して以下POST Requestを送ってください。
+```bash
+curl -X POST -H "Content-Type: application/json" -d @oc-circuit-vlan100.json http://localhost:8080/set
 ```
 
 4: GitHubのWebコンソールを用いて、本チュートリアル向けに作成したコンフィグ用のGitHubレポジトリのプルリクエスト(PullRequest: PR)を確認してください。
@@ -310,6 +341,11 @@ kuesta-testdata   Healthy   Completed
 
 ```bash
 gnmic -a :9339 -u admin -p admin get --path "/devices/device[name=oc01]" --path "/devices/device[name=oc02]" --encoding JSON --insecure
+```
+
+httpインターフェースを利用する場合は、`curl`を用いてKuestaサーバに対して以下POST Requestを送ってください。
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"paths": ["/devices/oc01", "/devices/oc02"]}'  http://localhost:8080/get
 ```
 
 以下のようなレスポンスが表示されます。
@@ -356,6 +392,116 @@ gnmic -a :9339 -u admin -p admin get --path "/devices/device[name=oc01]" --path 
                 "VlanId": 100
               },
               ...
+```
+
+httpインターフェースを使用した場合のレスポンスは以下です。
+```json
+[
+    {
+        "Interface": {
+            "Ethernet1": {
+                "AdminStatus": 1,
+                "Description": "",
+                "Enabled": false,
+                "Mtu": 9000,
+                "Name": "Ethernet1",
+                "OperStatus": 1,
+                "SubInterface": {
+                    "100": {
+                        "AdminStatus": 1,
+                        "Ifindex": 1,
+                        "Index": 100,
+                        "Name": "Ethernet1.100",
+                        "OperStatus": 1
+                    }
+                },
+                "Subinterface": {},
+                "Type": 80
+            },
+            "Ethernet2": {
+                "AdminStatus": 1,
+                "Description": "",
+                "Enabled": false,
+                "Mtu": 9000,
+                "Name": "Ethernet2",
+                "OperStatus": 1,
+                "Subinterface": {},
+                "Type": 80
+            },
+            "Ethernet3": {
+                "AdminStatus": 1,
+                "Description": "",
+                "Enabled": false,
+                "Mtu": 9000,
+                "Name": "Ethernet3",
+                "OperStatus": 1,
+                "Subinterface": {},
+                "Type": 80
+            }
+        },
+        "Vlan": {
+            "100": {
+                "Member": [],
+                "Name": "VLAN100",
+                "Status": 1,
+                "Tpid": 0,
+                "VlanId": 100
+            }
+        }
+    },
+    {
+        "Interface": {
+            "Ethernet1": {
+                "AdminStatus": 1,
+                "Description": "",
+                "Enabled": false,
+                "Mtu": 9000,
+                "Name": "Ethernet1",
+                "OperStatus": 1,
+                "SubInterface": {
+                    "100": {
+                        "AdminStatus": 1,
+                        "Ifindex": 1,
+                        "Index": 100,
+                        "Name": "Ethernet1.100",
+                        "OperStatus": 1
+                    }
+                },
+                "Subinterface": {},
+                "Type": 80
+            },
+            "Ethernet2": {
+                "AdminStatus": 1,
+                "Description": "",
+                "Enabled": false,
+                "Mtu": 9000,
+                "Name": "Ethernet2",
+                "OperStatus": 1,
+                "Subinterface": {},
+                "Type": 80
+            },
+            "Ethernet3": {
+                "AdminStatus": 1,
+                "Description": "",
+                "Enabled": false,
+                "Mtu": 9000,
+                "Name": "Ethernet3",
+                "OperStatus": 1,
+                "Subinterface": {},
+                "Type": 80
+            }
+        },
+        "Vlan": {
+            "100": {
+                "Member": [],
+                "Name": "VLAN100",
+                "Status": 1,
+                "Tpid": 0,
+                "VlanId": 100
+            }
+        }
+    }
+]
 ```
 
 レスポンスを確認すると、oc01とoc02の両方の装置エミュレータに対して、VLAN ID=100のVLAN定義とVLANサブインターフェースが設定されていることが分かります。

@@ -261,6 +261,25 @@ You can create the `oc-circuit` Service by the following steps:
     ]
 }
 ```
+When using the http interface, please create the following JSON instead of the above JSON. (Specify the path of the service in "path" and the value of the service to be submitted in "value.)
+
+```json
+{
+    "path": "/services/oc_circuit/100",
+    "value": {
+        "vlanID": 100,
+        "endpoints": [
+            {
+                "device": "oc01",
+                "port": 1
+            },
+            {
+                "device": "oc02",
+                "port": 1
+            }
+        ]
+    }
+}
 
 This sample Service requests both oc01 and oc02 device emulators to create a VLAN sub-interface with vlanID=100 on port 1.
 
@@ -270,10 +289,21 @@ This sample Service requests both oc01 and oc02 device emulators to create a VLA
 kubectl -n kuesta-system port-forward svc/kuesta-server 9339:9339
 ```
 
+If the http interface is used, the following is the case.
+
+```bash
+kubectl -n kuesta-system port-forward svc/kuesta-server 8080:8080
+```
+
 3: Send gNMI set request to kuesta-server using `gnmic`.
 
 ```bash
 gnmic -a :9339 -u dummy -p dummy set --replace-path "/services/service[kind=oc_circuit][vlanID=100]" --encoding JSON --insecure --replace-file oc-circuit-vlan100.json
+```
+
+If you use the http interface, send the following POST Request to the Questa server using `curl`.
+```bash
+curl -X POST -H "Content-Type: application/json" -d @oc-circuit-vlan100.json http://localhost:8080/set
 ```
 
 4: Check the PullRequest(PR) in your configuration repository on GitHub web console. Access [PR list](https://github.com/<your_org>/<your_config_repo>/pulls) then you will find the PR which titles as `[kuesta] Automated PR`. You can see what services and devices are configured by this PR on the PR comment, and their details from the `Files changed` tab.
@@ -309,6 +339,12 @@ kuesta-testdata   Healthy   Completed
 
 ```bash
 gnmic -a :9339 -u admin -p admin get --path "/devices/device[name=oc01]" --path "/devices/device[name=oc02]" --encoding JSON --insecure
+```
+
+If you use the http interface, send the following POST Request to the Questa server using `curl`.
+
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"paths": ["/devices/oc01", "/devices/oc02"]}'  http://localhost:8080/get
 ```
 
 The output displays the gNMI response payload like:
@@ -355,6 +391,116 @@ The output displays the gNMI response payload like:
                 "VlanId": 100
               },
               ...
+```
+
+The response when using the http interface is as follows.
+```json
+[
+    {
+        "Interface": {
+            "Ethernet1": {
+                "AdminStatus": 1,
+                "Description": "",
+                "Enabled": false,
+                "Mtu": 9000,
+                "Name": "Ethernet1",
+                "OperStatus": 1,
+                "SubInterface": {
+                    "100": {
+                        "AdminStatus": 1,
+                        "Ifindex": 1,
+                        "Index": 100,
+                        "Name": "Ethernet1.100",
+                        "OperStatus": 1
+                    }
+                },
+                "Subinterface": {},
+                "Type": 80
+            },
+            "Ethernet2": {
+                "AdminStatus": 1,
+                "Description": "",
+                "Enabled": false,
+                "Mtu": 9000,
+                "Name": "Ethernet2",
+                "OperStatus": 1,
+                "Subinterface": {},
+                "Type": 80
+            },
+            "Ethernet3": {
+                "AdminStatus": 1,
+                "Description": "",
+                "Enabled": false,
+                "Mtu": 9000,
+                "Name": "Ethernet3",
+                "OperStatus": 1,
+                "Subinterface": {},
+                "Type": 80
+            }
+        },
+        "Vlan": {
+            "100": {
+                "Member": [],
+                "Name": "VLAN100",
+                "Status": 1,
+                "Tpid": 0,
+                "VlanId": 100
+            }
+        }
+    },
+    {
+        "Interface": {
+            "Ethernet1": {
+                "AdminStatus": 1,
+                "Description": "",
+                "Enabled": false,
+                "Mtu": 9000,
+                "Name": "Ethernet1",
+                "OperStatus": 1,
+                "SubInterface": {
+                    "100": {
+                        "AdminStatus": 1,
+                        "Ifindex": 1,
+                        "Index": 100,
+                        "Name": "Ethernet1.100",
+                        "OperStatus": 1
+                    }
+                },
+                "Subinterface": {},
+                "Type": 80
+            },
+            "Ethernet2": {
+                "AdminStatus": 1,
+                "Description": "",
+                "Enabled": false,
+                "Mtu": 9000,
+                "Name": "Ethernet2",
+                "OperStatus": 1,
+                "Subinterface": {},
+                "Type": 80
+            },
+            "Ethernet3": {
+                "AdminStatus": 1,
+                "Description": "",
+                "Enabled": false,
+                "Mtu": 9000,
+                "Name": "Ethernet3",
+                "OperStatus": 1,
+                "Subinterface": {},
+                "Type": 80
+            }
+        },
+        "Vlan": {
+            "100": {
+                "Member": [],
+                "Name": "VLAN100",
+                "Status": 1,
+                "Tpid": 0,
+                "VlanId": 100
+            }
+        }
+    }
+]
 ```
 
 You will find that vlan and vlan sub-interfaces of both devices oc01 and oc02 are configured correctly as implemented in the `oc-circuit` service model.
