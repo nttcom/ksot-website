@@ -280,6 +280,7 @@ When using the http interface, please create the following JSON instead of the a
         ]
     }
 }
+```
 
 This sample Service requests both oc01 and oc02 device emulators to create a VLAN sub-interface with vlanID=100 on port 1.
 
