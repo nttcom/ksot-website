@@ -3,64 +3,30 @@ title: "Concepts"
 linkTitle: "Concepts"
 weight: 3
 description: >
-  Learn more about the core concepts of Kuesta.
+   Concepts, architecture, and other technical information about K-SOT.
 ---
 
 
-## Network Configuration as Code with CUE
+## Network Configuration as Code with Go
 
-Kuesta supports creating an abstracted high-level configuration layer to expose easy high-level data model and API.
-The configuration data models of the network devices have lots of networking capabilities therefore are too much detailed and complicated, they are not suitable for the resource model of the Infrastructure as Code.
-To provide a data model which can represent the user intent easily, an abstracted high-level data model is required to hide the complicated actual device configurations.
-In addition, the high-level data model which effects multiple network device configs is needed for domain-wide abstraction such as E2E connectivity.
+K-SOT supports abstracting complex network device configurations and exposing a high-level data model and API that can easily describe user intent. The data model of a network device is too detailed and complex to be treated as an Infrastructure as Code resource model, as it provides a multitude of networking functions. In order to provide a data model that can easily represent user intent, a high-level data model is needed that hides the complexity and abstracts it in an understandable manner. In addition, to achieve a model that abstracts the entire domain, such as an E2E connection, requires a data model that is configured across multiple network devices.
 
-These high-level data model abstraction causes the additional complexity of the high-to-low data mapping logic.
-The relations between the high-level model and the low-level actual device configs are many-to-many, we need to consider performing data composition in addition to high-to-low data mapping without data loss, conflicts, and type constraint violation.
-A simple text-templating approach using Python/Jinja is not enough to solve this complex problem.
+With such abstraction to a high-level model, the data mapping from the high-level model to the low-level equipment configurations becomes very complex.
+Because of the many-to-many relationship between the upper and lower models, in addition to data mapping, data synthesis must also be performed simultaneously. At this time, care must be taken to avoid missing data, conflicts, and data constraint violations.
+A simple text template approach using Python/Jinja is difficult to solve this complex problem.
 
-Kuesta uses [CUE](https://github.com/cue-lang/cue) as a programming language of high-to-low data mapping logic. CUE is a configuration language specialized in data unification and validation, and is well-suited for the above usecase for the following reasons:
-- CUE enables us to unify multiple document-tree in the arbitrary layer. CUE is designed to ensure combining CUE values in any order always gives the same result (associative, commutative, and idempotent).
-- CUE merges types and values into a single concept. Even types and constraints are the kind of value, the only difference between them is that they do not have concrete value. Due to this novel approach, we can declare constraints and schema simply and efficiently in the configuration data itself.
-- CUE is highly programmable and supports software coding practices like templating and modularization. We can take the same advantages as if we use general-purpose language.
+With K-SOT, the data mapping logic from the upper model to the lower model can be written in Go. In addition, data composition can be implemented without user awareness.
 
-To learn more about CUE, see ["cuelang.org"](https://cuelang.org/docs/about/).
+## Data Management with GitHub
 
+K-SOT provides data management via GitHub for network device configurations. It is intended to be a single source of truth (SSoT) that can be trusted by declaratively describing the configuration of the entire network and versioning it in a GitHub repository
 
-## GitOps
+## Components of K-SOT
 
-Kuesta provides GitOps for network configuration. It aims to describe the entire network configuration declaratively and version controlled in a Git repository, as a Single Source of Truth(SSoT). 
-The configuration process is totally automated so that the deployed network configuration matches the state specified in a repository. All you have to do to switch the network configuration or rollback is to change the Git branch HEAD to the revision you want to deploy.
+K-SOT consists of the following components:
 
-Kuesta selects Pull-based approach for the following reasons:
-- To detect the configuration drift between the desired config in the configuration repository and the actual config stored in devices, whenever the device config is updated.
-- To ensure that the entire network configuration stored at the SSoT git repository is deployed to the devices with the prepared deploy pipeline, without inserting any configuration changes.
-- To avoid aggregating all device credentials and providing them to the single god-mode configuration system. Device credentials are stored as the Kubernetes Secret resource, and you can integrate with public clouds' SecretManager to manage these credentials more securely using OSS tools like ExternalSecrets Operator.
+- **nb-server** receives the service model and performs derivation of the device configuration.
 
-For more information about GitOps, take a look at [“What is GitOps?”](https://www.gitops.tech/#what-is-gitops).
+- **github-server** updates GitHub.
 
-
-## Kubernetes Custom Operator
-
-Kuesta uses the Kubernetes reconciliation loop and the operator pattern as an engine of Infrastructure as Code. 
-Kubernetes is a well-known container orchestration tool, but it can be extended to automate deploying any external resources including network devices.
-Kuesta consists of multiple Kubernetes custom operators to perform GitOps, distributed transaction coordinator, and the driver to configure the network devices.
-
-You can extend Kuesta to support new vendors' devices or new versions by implementing Kubernetes custom operator for them as a device driver.
-
-
-## The components of Kuesta
-
-Kuesta consists of the following components:
-
-- **kuesta-server** is the core api-server of Kuesta. It exposes gNMI to integrate with the external 3rd-party system, performs high-to-low data mapping and data composition, and creates new git-commit and PullRequest for GitOps.
-
-- **kuesta-aggregator** aggregates the actual device config changes and creates a new git-commit to persist the config change history.
-
-- **FluxCD source-controller** detects manifest changes of the specified Git repository at `GitRepository` Kubernetes custom resource.
-
-- **kuesta-provisioner** consists of the `gitrepository-watcher` controller and `DeviceRollout` Kubernetes custom resource. `gitrepository-watcher` watches `GitRepository` status to detect the manifest changes and updates `DeviceRollout` status  to `running` when change is detected, which triggers the device config update transaction.
-
-To configure network devices using Kuesta, you must prepare your own Kubernetes custom operator to configure your target devices.
-It is recommended to use [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) which is the powerful framework to build your Kubernetes custom operator.
-You can also start from [device-operator](https://github.com/nttcom/kuesta/tree/main/device-operator) used at the ["Getting started"](/docs/getting-started), the sample Kubernetes custom operator designed to configure OpenConfig/gNMI device.
-It is built using kubebuilder.
+- **sb-server** submits the configuration to the device.

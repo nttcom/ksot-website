@@ -3,32 +3,31 @@ title: "Getting Started"
 linkTitle: "Getting Started"
 weight: 1
 description: >
-  Kuestaを動かしてみよう
+  K-SOTを動かしてみよう
 ---
 
-このチュートリアルでは、以下のステップでKuestaを構築し、動作確認を行います。
+このチュートリアルでは、以下のステップでK-SOTを構築し、動作確認を行います。
 
-1. ローカルのKubernetesクラスターを作成する
-2. Kuestaをインストールする
-3. 装置エミュレータを立ち上げる
-4. 新しいServiceコンフィグを作成して、GitOpsを介して装置エミュレータに設定を投入する
-
+1. ローカルKubernetesクラスタ作成
+2. 検証用のGithubレポジトリの作成
+3. K-SOTをインストール、各種ファイル設定
+4. 装置エミュレータを立ち上げる
+5. K-SOTのデプロイ
+6. 動作確認
 
 ## 事前準備 
 
-1. [golang (v1.20.4+))](https://go.dev/doc/install) をインストールしてください。カスタムコントローラーのツール類を使用するために必要です。
+1. [golang (v1.21.0+))](https://go.dev/doc/install) をインストールしてください。装置設定導出ロジックを書くのに必要です。
 2. [docker (v20.10.24+)](https://docs.docker.com/engine/install) をインストールしてください。kindの実行に必要です。
 3. [kind (v0.12.0+)](https://kind.sigs.k8s.io/docs/user/quick-start/) をインストールしてください。ローカルのKubernetesクラスタの構築に使用します。
 4. [kubectl (v1.25.4+)](https://kubernetes.io/docs/tasks/tools/) をインストールしてください。Kubernetesクラスタに対してコマンドを実行する際に使用します。
-5. [cue (v0.4.x)](https://cuelang.org/docs/install/) をインストールしてください。Kuestaのインストールスクリプトの実行に必要です。
-6. [gnmic (v0.26.0+)](https://gnmic.kmrd.dev/install/) をインストールしてください。Kuestaサーバに対してgNMIリクエストを行うために必要です。
 
-## ローカルKubernetesクラスタの立ち上げ
+## 1. ローカルKubernetesクラスタ作成
 
 以下のコマンドを実行して、ローカルのKubernetesクラスタを立ち上げます。
 
 ```bash
-kind create cluster
+kind create cluster --name ksot-started
 ```
 
 実行が完了したら、以下のコマンドを実行して、Kubernetesクラスタが正常に作成されたことを確認します。
@@ -47,473 +46,368 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ```
 
 
-## 検証用のGithubレポジトリの作成
+## 2. 検証用のGithubレポジトリの作成
 
-KuestaのGitOpsを用いてネットワーク装置に設定を行うには、2つのGitHubレポジトリを作成する必要があります。
-1つ目はGitOpsの起点となるコンフィグ管理レポジトリで、2つ目はネットワーク装置の実際のコンフィグの変更履歴を管理するレポジトリです。
-[Kuesta Example](https://github.com/nttcom/kuesta-example) レポジトリをテンプレートとして使用することで、これらのレポジトリを簡単に作成できます。
-レポジトリ名は、小文字の英数字、'-'または'.'で構成され、英数字で始まり、英数字で終わる必要があります。
+K-SOTをGithubを用いてネットワーク装置の設定を管理するには、GitHubレポジトリを作成する必要があります。
+[K-SOT Example](https://github.com/nttcom/ksot-example) レポジトリをテンプレートとして使用することで、これらのレポジトリを簡単に作成できます。
 
-以下を2回実行して、2つのGitHubレポジトリを作成してください。
+以下を実行して、GitHubレポジトリを作成してください。
 
-1. [Kuesta Example](https://github.com/nttcom/kuesta-example) レポジトリの **Use this template** ボタンをクリックしてください。
+1. [K-SOT Example](https://github.com/nttcom/ksot-example) レポジトリの **Use this template** ボタンをクリックしてください。
 
-2. レポジトリ名を入力して、 **Create repository from template** ボタンをクリックしてください。レポジトリの公開・非公開については、好きな方を選択してください。
+2. レポジトリ名を入力して、 **Create repository from template** ボタンをクリックしてください。レポジトリの公開・非公開については、好きな方を選択してください。今回はレポジトリオーナーをユーザーのアカウントに設定し、レポジトリ名はksot-exampleと設定してください。
 
 
-## Kuestaと検証用サンプルリソースのインストール
-
-Kuestaと、検証用のドライバオペレータや装置エミュレータなどのサンプルリソースをインストールするには、以下のコマンドを実行してください。
-
+## 3. K-SOTをインストール、各種ファイル設定
+### K-SOTのレポジトリをclone、submoduleの初期化
+レポジトリのclone
 ```bash
-git clone https://github.com/nttcom/kuesta.git
-cd kuesta/tool/install
-cue install
+git clone https://github.com/nttcom/ksot.git
+```
+submoduleの初期化
+```bash
+git submodule update --init --recursive
 ```
 
-プロンプトが表示されますので、指示に従ってパラメータを入力してください。
-`GitHub repository for config` `GitHub repository for status`は前項で作成した２つの検証用のGithubレポジトリをそれぞれ指定してください。
+### envファイルの設定
+上でcloneしたK-SOTレポジトリに対して、以下envファイルを配置してください。
 
+/.env
 ```bash
-GitHub repository for config: https://github.com/<your_org>/<your_config_repo>
-GitHub repository for status: https://github.com/<your_org>/<your_status_repo>
-GitHub username: <your_username>
-GitHub private access token: <your_private_access_token>
-Are these git repositories private? (yes|no): no
-Do you need sample driver and emulator for trial?: (yes|no) yes
-
----
-GitHub Config Repository: https://github.com/<your_org>/<your_config_repo>
-GitHub Status Repository: https://github.com/<your_org>/<your_status_repo>
-GitHub Username: <your_username>
-GitHub Access Token: ***
-Use Private Repo: true
-
-Image Registry: ghcr.io/nttcom/kuesta
-Version: latest
-Deploy sample driver and emulator: true
----
-
-Continue? (yes|no) yes
+KIND_NAME=ksot-started
+GITHUB_REPO_URL=https://{Githubユーザー名}:{Githubユーザートークン}@github.com/{Githubユーザー名}/ksot-example
+GITHUB_USER_NAME={Githubユーザー名}
+GITHUB_USER_MAIL={Github登録メールアドレス}
 ```
 
-KuestaはGitへのプッシュやプルリクエストの作成を行うため、GitHubの [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) (PAT) が必要です(classic推奨)。
-ここで入力されたPATは、ローカルのKubernetesクラスタ内のSecretリソースにのみ保存されます。ローカルのKubernetesクラスタを削除することで、どこにもデータを残さずに完全に削除できます。
-
-インストールスクリプトの実行が完了したら、 `kubectl` コマンドを実行することで何がインストールされたかを確認できます。
-
-1: Custom Resource Definitions(CRDs):
+/github-server/config/overlays/test/.env
 ```bash
-kubectl get customresourcedefinitions.apiextensions.k8s.io
-````
-
-```bash
-NAME                                        CREATED AT
-buckets.source.toolkit.fluxcd.io            2023-01-10T06:31:20Z
-certificaterequests.cert-manager.io         2023-01-10T06:31:19Z
-certificates.cert-manager.io                2023-01-10T06:31:19Z
-challenges.acme.cert-manager.io             2023-01-10T06:31:19Z
-clusterissuers.cert-manager.io              2023-01-10T06:31:19Z
-devicerollouts.kuesta.hrk091.dev            2023-01-10T06:43:30Z
-gitrepositories.source.toolkit.fluxcd.io    2023-01-10T06:31:20Z
-helmcharts.source.toolkit.fluxcd.io         2023-01-10T06:31:20Z
-helmrepositories.source.toolkit.fluxcd.io   2023-01-10T06:31:20Z
-issuers.cert-manager.io                     2023-01-10T06:31:19Z
-ocdemoes.kuesta.hrk091.dev                  2023-01-10T06:43:36Z
-ocirepositories.source.toolkit.fluxcd.io    2023-01-10T06:31:20Z
-orders.acme.cert-manager.io                 2023-01-10T06:31:19Z
+GITHUB_REPO_URL=https://{Githubユーザー名}:{Githubユーザートークン}@github.com/{Githubユーザー名}/ksot-example
 ```
 
-`kuesta.hrk091.dev`、`source.toolkit.fluxcd.io`、`cert-manager.io` に属するCRDが追加されていることが確認できます。
+### yangファイルの設定
+#### 装置向けyangの設定
+本記事で管理対象の装置とする[ODTN-emulator](https://github.com/opennetworkinglab/ODTN-emulator)の[YANGフォルダ]( https://github.com/opennetworkinglab/ODTN-emulator/tree/master/emulator-oc-cassini/yang/openconfig-odtn)内のyangを全て取得。```nb-server/pkg/tf/yang/devices```配下にフォルダ(名前: cassini)を作成して先ほど取得したyangファイルを配置してください。
+#### サービス向けyangの設定
+```nb-server/pkg/tf/yang/services```配下にフォルダ(名前: transceivers)を作成して以下内容のyangファイルをその中に配置します。
 
-
-2: Pods:
-```bash
-kubectl get pods -A | grep -v 'kube-system'
-```
-
-```bash
-NAMESPACE                NAME                                                  READY   STATUS    RESTARTS   AGE
-cert-manager             cert-manager-7475574-t7qlm                            1/1     Running   0          12m
-cert-manager             cert-manager-cainjector-d5dc6cd7f-wbh6r               1/1     Running   0          12m
-cert-manager             cert-manager-webhook-6868bd8b7-kc85s                  1/1     Running   0          12m
-device-operator-system   device-operator-controller-manager-5d8648469b-57x4l   2/2     Running   0          11s
-flux-system              source-controller-7ff779586b-wsgf7                    1/1     Running   0          12m
-kuesta-getting-started   gnmi-fake-oc01-79d4d679b4-tvm78                       1/1     Running   0          10s
-kuesta-getting-started   gnmi-fake-oc02-69d9cc664d-56bsz                       1/1     Running   0          10s
-kuesta-getting-started   subscriber-oc01                                       1/1     Running   0          9s
-kuesta-getting-started   subscriber-oc02                                       1/1     Running   0          9s
-kuesta-system            kuesta-aggregator-7586999c47-jj7m4                    1/1     Running   0          27s
-kuesta-system            kuesta-server-85fc4f8646-kq72c                        1/1     Running   0          27s
-local-path-storage       local-path-provisioner-9cd9bd544-lk9w9                1/1     Running   0          16m
-provisioner-system       provisioner-controller-manager-7675d487c8-w6f7x       1/2     Running   0          17s
-```
-
-全てのPodがRunningのステータスになっていたら、準備完了です。
-
-以下の各namespaceに、Kuestaのコア機能として必要なサービスがデプロイされています。
-
-- kuesta-system
-  - Kuestaのコア機能やAPIを提供するサーバ
-- provisioner-system
-  - KuestaのKubernetesカスタムオペレータ。GitOpsやトランザクション管理に使用
-- flux-system
-  - FluxCDのカスタムコントローラ
-- cert-manager
-  - プライベートCAの認証局、およびmTLS用の証明書発行
-
-また、以下のnamespaceには、本チュートリアル用のリソースがデプロイされています。
-
-- device-operator-system
-  - チュートリアルで使用する装置エミュレータに対し設定投入を行うためのドライバとして振る舞うKubernetesカスタムオペレータ
-- kuesta-getting-started
-  - チュートリアルで使用する装置エミュレータやエミュレータに設定を行うためのKubernetesカスタムリソースなど
-
-以下の2つは、OpenConfig over gNMIで設定が可能な装置エミュレータです。本チュートリアルでは、 `oc01` と `oc02` の2つのエミュレータがデプロイされています。
-
-```bash
-kuesta-getting-started   gnmi-fake-oc01-79d4d679b4-tvm78                       1/1     Running   0          10s
-kuesta-getting-started   gnmi-fake-oc02-69d9cc664d-56bsz                       1/1     Running   0          10s
-```
-
-ポートフォワーディングして `gnmic` からリクエストを行うことで設定されているコンフィグを確認できますので、必要に応じて実施してください。
-以下のコマンドで、装置エミュレータ内のコンフィグの確認ができます。
-
-```bash
-# oc01のコンフィグを取得
-kubectl -n kuesta-getting-started port-forward svc/gnmi-fake-oc01 9339:9339
-gnmic -a :9339 -u admin -p admin get --path "" --encoding JSON --skip-verify
-```
-
-
-## Serviceコンフィグを作成し、GitOpsを走らせる
-
-**Service** は、ネットワークコンフィグを高レベルに抽象化したモデルです。Serviceを作成/変更することで、関連する複数のネットワーク装置にまとめて設定を投入することができます。
-
-本チュートリアル用のサンプルレポジトリの中には、 `oc-circuit` という名のServiceが設定されていますので、これを用いて動作確認を行います。
-ServiceはCUEで記述されます。例として、 `oc-circuit` Serviceの定義を以下に示します。
-
-```cue
-package oc_circuit
-
-import (
-	ocdemo "github.com/hrk091/kuesta-testdata/pkg/ocdemo"
-)
-
-#Input: {
-	// kuesta:"key=1"
-	vlanID: uint32
-	endpoints: [...{
-		device: string
-		port:   uint32
-	}]
-}
-
-#Template: {
-	input: #Input
-
-	output: devices: {
-		for _, ep in input.endpoints {
-			"\(ep.device)": config: {
-				ocdemo.#Device
-
-				let _portName = "Ethernet\(ep.port)"
-				Interface: "\(_portName)": SubInterface: "\(input.vlanID)": {
-					Ifindex:     ep.port
-					Index:       input.vlanID
-					Name:        "\(_portName).\(input.vlanID)"
-					AdminStatus: 1
-					OperStatus:  1
-				}
-
-				Vlan: "\(input.vlanID)": {
-					VlanId: input.vlanID
-					Name:   "VLAN\(input.vlanID)"
-					Status: ocdemo.#Vlan_Status_ACTIVE
-					Tpid:   ocdemo.#OpenconfigVlanTypes_TPID_TYPES_UNSET
-				}
+```yang
+module transceivers {
+    namespace "tf-ksot/transceivers";
+	prefix ts;
+	grouping transceivers-top {
+		list transceivers {
+			key "name";
+			leaf name {
+				type string;
+			}
+			leaf-list  up {
+				type string;
+			}
+			leaf-list down {
+				type string;
 			}
 		}
 	}
+    uses transceivers-top;
 }
 ```
 
-`oc-circuit` Serviceは、`#Template` フィールドに定義された内容に従い、受け取った `#Template.input`（Serviceコンフィグ）を `#Template.output` （複数のネットワーク装置のコンフィグ）に変換します。
-`#Input` の定義されているServiceのインターフェーススキーマを見ると、`oc-circuit` Serviceを使用するためには、 VLAN ID と複数のネットワーク装置のポートが必要なことがわかります。
-これらを指定して `oc-circuit` Serviceを作成すると、 `#Template` のマッピング定義に従い、VLAN定義と指定したポートのVLANサブインターフェースが作成されます。
+### 装置設定導出パッケージの設定
+```nb-server/pkg/tf/transceivers.go```を以下内容で作成します。
+```go
+package tf
 
-以下の手順にしたがって、`oc-circuit` Serviceを作成してください。
+import (
+	"encoding/json"
+	"fmt"
 
-1: `oc-circuit` Serviceの作成をリクエストするために、以下のJSONファイルを `oc-circuit-vlan100.json` という名前で保存してください。
-このServiceでは、oc01とoc02の両エミュレータに対して、ポート番号1のインターフェイスにVLAN ID=100のVLANサブインターフェースを作成することをリクエストしています。
+	"github.com/nttcom-ic/ksot/nb-server/pkg/model/pathmap"
+)
 
-```json
-{
-    "vlanID": 100,
-    "endpoints": [
-        {
-            "device": "oc01",
-            "port": 1
-        },
-        {
-            "device": "oc02",
-            "port": 1
-        }
-    ]
+type Transceiver struct {
+	Name string   `json:"name"`
+	Nos  string   `json:"nos"`
+	Up   []string `json:"up"`
+	Down []string `json:"down"`
+}
+type Transceivers map[string][]Transceiver
+
+func TfTransceivers(ts interface{}) (map[string]pathmap.PathMapInterface, error) {
+	fmt.Println("hello")
+	mapByte, err := json.Marshal(ts)
+	if err != nil {
+		return nil, err
+	}
+	var transceivers Transceivers
+	if err := json.Unmarshal(mapByte, &transceivers); err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	results := make(map[string]pathmap.PathMapInterface)
+	fmt.Println("tflogic: ", transceivers)
+	for _, devices := range transceivers {
+		for _, device := range devices {
+			result, err := pathmap.NewPathMap(map[string]interface{}{})
+			if err != nil {
+				return nil, err
+			}
+			for _, v := range device.Up {
+				path := fmt.Sprintf("/openconfig-platform:components/component[name=%v]/openconfig-platform-transceiver:transceiver/config/enabled", v)
+				err = result.SetValue(path, true, map[string]string{})
+				if err != nil {
+					return nil, err
+				}
+			}
+			for _, v := range device.Down {
+				path := fmt.Sprintf("/openconfig-platform:components/component[name=%v]/openconfig-platform-transceiver:transceiver/config/enabled", v)
+				err = result.SetValue(path, false, map[string]string{})
+				if err != nil {
+					return nil, err
+				}
+			}
+			results[device.Name] = result
+		}
+	}
+	fmt.Println("check: ", results)
+	return results, nil
+}
+```
+```nb-server/pkg/tf/tf.go```を以下の内容に変更します。
+```go
+package tf
+
+import (
+	"github.com/nttcom-ic/ksot/nb-server/pkg/model"
+)
+
+var TfLogic = model.NewPathMapLogic()
+
+func init() {
+	// User needs to create a function to generate a pathmap and add it to the MAP.
+	// Example.
+	// TfLogic["serviceName"] = serviceName
+	TfLogic["transceivers"] = TfTransceivers
 }
 ```
 
-httpインターフェースを利用する場合、上に代わって以下JSONを作成してください。(pathにはServiceのパス、valueには投入するServiceの値を指定)
+## 4. 装置エミュレータを立ち上げる
+事前にエミュレーターの接続情報を記載したenvファイルを追加
+/sb-server/config/overlays/test/.env
+```bash
+cassini=root
+```
 
+以下コマンドで[OTDN-emulator](https://github.com/opennetworkinglab/ODTN-emulator)を立ち上げます。
+```bash
+docker pull onosproject/oc-cassini:0.21
+docker run -it -d --name odtn-emulator_openconfig_cassini_1 -p 11002:830 onosproject/oc-cassini:0.21
+```
+
+以下のようにコンテナが立ち上がっているか確認してください。
+```bash
+% docker ps
+CONTAINER ID  IMAGE             COMMAND          CREATED    STATUS    PORTS                   NAMES
+52da5c9f1c79  onosproject/oc-cassini:0.21  "sh /root/script/pus…"  4 hours ago  Up 4 hours  22/tcp, 8080/tcp, 0.0.0.0:11002->830/tcp  odtn-emulator_openconfig_cassini_1
+```
+
+コントローラーから[OTDN-emulator](https://github.com/opennetworkinglab/ODTN-emulator)への接続情報追加するため、K-SOTレポジトリに```sb-server/connect.json```を作成し以下の内容で保存します。
 ```json
 {
-    "path": "/services/oc_circuit/100",
-    "value": {
-        "vlanID": 100,
-        "endpoints": [
+    "cassini": {
+        "ip": "host.docker.internal",
+        "port": 11002,
+        "username": "root",
+        "hostKeyVerify": false,
+        "if": "netconf"
+    }
+}
+```
+
+## 5. K-SOTのデプロイ
+以下コマンドをK-SOTレポジトリのルートで実行してください。
+```bash
+make getting-started
+```
+実行後```kubectl get pod```で起動しているpodを確認すると、以下3つのpodが作成されています。
+
+```bash
+NAMESPACE            NAME                                                 READY   STATUS    RESTARTS   AGE
+default              ksot-github-deployment-766b6ff499-72zkr              1/1     Running   0          24s
+default              ksot-nb-deployment-967757888-dqzw7                   1/1     Running   0          24s
+default              ksot-sb-deployment-6d89c6f85c-zksl5                  1/1     Running   0          24s
+...
+```
+
+## 6. 動作確認
+### ポートフォワードの実施
+まずNorthboundとなるk8s serviceにport-forwardを実施しておきます。
+
+```bash
+kubectl port-forward svc/ksot-nb-service 8080:8080
+```
+
+### 装置情報の取得
+```PUT: http://localhost:8080/sync/devices```を実施し、Githubレポジトリに現在の装置設定を反映させます。
+検証用Githubレポジトリの```Devices/cassini```に以下のファイルが作成されていれば成功です。
+- actual.json: 実機から取得した設定
+- ref.json: 各サービスから設定されているパラメータ(初期値は空のJSON)
+- set.json: コントローラーが投入した設定(初期値は実機から取得したものと同じ)
+
+
+### サービスの作成
+以下JSONをbodyとして```POST: http://localhost:8080/services```を実施、bodyに指定されたサービスを作成し装置の設定を変更します。
+今回のサービスではtransceiversのud/downを実施するサービスを作成します。なお作成するサービスについては事前に装置設定導出パッケージを追加する必要があります(前の手順)。
+```JSON
+{
+    "transceivers": {
+        "transceivers:transceivers":  [
             {
-                "device": "oc01",
-                "port": 1
-            },
+                "name": "cassini",
+                "up": [],
+                "down": [
+                    "oe1",
+                    "oe2",
+                ]
+            }
+        ]
+    }
+}
+```
+検証用Githubレポジトリの```Services/transceivers```に以下のファイルが作成されていることを確認してください。
+- input.json: 投入したサービスの値
+- output.json: 設定を変更した装置のxpathと対応する値
+
+### 装置情報の取得(サービス作成後)
+```PUT: http://localhost:8080/sync/devices```を実施し、Githubレポジトリに現在の装置設定を反映します。
+検証用Githubレポジトリの```Devices/cassini/actual.json```が以下のように更新され、[OTDN-emulator](https://github.com/opennetworkinglab/ODTN-emulator)の指定した箇所のtransceiversがdownしていることがわかります。
+```diff
+{
+...
+				"name": "oe1",
+				"config": {
+					"name": "oe1"
+				},
+				"state": {
+					"type": "openconfig-platform-types:TRANSCEIVER",
+					"empty": false
+				},
+				"openconfig-platform-transceiver:transceiver": {
+					"config": {
+						- "enabled": true,
+						+  "enabled": false,
+						"form-factor-preconf": "openconfig-transport-types:CFP2_ACO"
+					}
+				}
+...
+				"name": "oe2",
+				"config": {
+					"name": "oe2"
+				},
+				"state": {
+					"type": "openconfig-platform-types:TRANSCEIVER",
+					"empty": false
+				},
+				"openconfig-platform-transceiver:transceiver": {
+					"config": {
+						- "enabled": true,
+						+  "enabled": false
+						"form-factor-preconf": "openconfig-transport-types:CFP2_ACO"
+					}
+				}
+...
+}
+```
+
+### サービスの更新
+以下JSONをbodyとして```PUT: http://localhost:8080/services```を実施、bodyに指定されたサービスを更新し装置の設定を変更します。
+今回はoe1のtransceiverについてUPするよう更新します。
+```JSON
+{
+    "transceivers": {
+        "transceivers:transceivers":  [
             {
-                "device": "oc02",
-                "port": 1
+                "name": "cassini",
+                "up": [
+					"oe1",
+				],
+                "down": [
+                    "oe2",
+                ]
             }
         ]
     }
 }
 ```
 
-2: ローカルのKubernetesクラスタで動作しているKuestaサーバのPodに対してポートフォワーディングしてください。
-
-```bash
-kubectl -n kuesta-system port-forward svc/kuesta-server 9339:9339
+### 装置情報の取得(サービス更新後)
+```PUT: http://localhost:8080/sync/devices```を実施し、Githubレポジトリに現在の装置設定を反映します。
+検証用Githubレポジトリの```Devices/cassini/actual.json```が以下のように更新され、[OTDN-emulator](https://github.com/opennetworkinglab/ODTN-emulator)の指定した箇所のtransceiversがUPしていることがわかります。
+```diff
+{
+...
+				"name": "oe1",
+				"config": {
+					"name": "oe1"
+				},
+				"state": {
+					"type": "openconfig-platform-types:TRANSCEIVER",
+					"empty": false
+				},
+				"openconfig-platform-transceiver:transceiver": {
+					"config": {
+						+  "enabled": true,
+						- "enabled": false,
+						"form-factor-preconf": "openconfig-transport-types:CFP2_ACO"
+					}
+				}
+...
+}
 ```
 
-httpインターフェースを利用する場合は以下です。
+### サービスの削除
+```DELETE: http://localhost:8080/services?name=transceivers```を実施。クエリパラメーターに指定した名前のサービスを削除し、装置の設定を変更します。
+検証用Githubレポジトリの```Services/transceivers```フォルダが消えるので確認してください。
 
-```bash
-kubectl -n kuesta-system port-forward svc/kuesta-server 8080:8080
+### 装置情報の取得(サービス削除後)
+```PUT: http://localhost:8080/sync/devices```を実施し、Githubレポジトリに現在の装置設定を反映します。
+検証用Githubレポジトリの```Devices/cassini/actual.json```が以下のように更新され、サービスから投入していたコンフィグ箇所が消えていることがわかります。
+
+```diff
+{
+...
+				"name": "oe1",
+				"config": {
+					"name": "oe1"
+				},
+				"state": {
+					"type": "openconfig-platform-types:TRANSCEIVER",
+					"empty": false
+				},
+				"openconfig-platform-transceiver:transceiver": {
+					"config": {
+						- "enabled": true,
+						"form-factor-preconf": "openconfig-transport-types:CFP2_ACO"
+					}
+				}
+...
+				"name": "oe2",
+				"config": {
+					"name": "oe2"
+				},
+				"state": {
+					"type": "openconfig-platform-types:TRANSCEIVER",
+					"empty": false
+				},
+				"openconfig-platform-transceiver:transceiver": {
+					"config": {
+						-  "enabled": false
+						"form-factor-preconf": "openconfig-transport-types:CFP2_ACO"
+					}
+				}
+...
+}
 ```
 
-3: `gnmic`を用いて、Kuestaサーバに対してgNMI SetRequestを送ってください。
-```bash
-gnmic -a :9339 -u dummy -p dummy set --replace-path "/services/service[kind=oc_circuit][vlanID=100]" --encoding JSON --insecure --replace-file oc-circuit-vlan100.json
-```
-
-httpインターフェースを利用する場合は、`curl`を用いてKuestaサーバに対して以下POST Requestを送ってください。
-```bash
-curl -X POST -H "Content-Type: application/json" -d @oc-circuit-vlan100.json http://localhost:8080/set
-```
-
-4: GitHubのWebコンソールを用いて、本チュートリアル向けに作成したコンフィグ用のGitHubレポジトリのプルリクエスト(PullRequest: PR)を確認してください。
-[PR一覧](https://github.com/<your_org>/<your_config_repo>/pulls) にアクセスすると、 `[kuesta] Automated PR` というタイトルのPRが確認できます。
-PRのコメントを見ると、どのServiceとどのネットワーク装置が変更されたのかがわかりますし、 `Files changed` タブを確認すると詳細な変更点が確認できます。
-
-5: PRブランチをマージする前に、ローカルのKubernetesクラスターで `DeviceRollout` リソースをモニターしてください。 `DeviceRollout` リソースは、Gitレポジトリからプルしたコンフィグを各ネットワーク装置に設定する際の状態管理を行っています。以下のコマンドを実行してください。 
-
-```bash
-kubectl -n kuesta-getting-started get devicerollouts.kuesta.hrk091.dev -w
-```
-
-`DeviceRollout` リソースが一つ表示され、その `STATUS` が `Completed` になっていれば、GitOpsによるデリバリプロセスを流す準備は完了です。
-
-```bash
-NAME              PHASE     STATUS
-kuesta-testdata   Healthy   Completed
-```
-
-
-6: GitHubのWebコンソール上で、PRをマージしてください。その後、 `DeviceRollout` をモニターしているターミナル画面に移動してください。
-1分以内に、 `DeviceRollout` の `STATUS` が `Running` に変わり、その後 `Completed` に変わることを確認してください。
-
-```bash
-NAME              PHASE     STATUS
-kuesta-testdata   Healthy   Completed
-kuesta-testdata   Healthy   Completed
-kuesta-testdata   Healthy   Running
-kuesta-testdata   Healthy   Running
-kuesta-testdata   Healthy   Running
-kuesta-testdata   Healthy   Completed
-```
-
-7: 装置コンフィグが本当に更新されたのかを確認します。 `gnmic` を用いて、gNMI GetRequestをKuestaサーバに対して送り、装置コンフィグ全体を取得してください。
-
-```bash
-gnmic -a :9339 -u admin -p admin get --path "/devices/device[name=oc01]" --path "/devices/device[name=oc02]" --encoding JSON --insecure
-```
-
-httpインターフェースを利用する場合は、`curl`を用いてKuestaサーバに対して以下POST Requestを送ってください。
-```bash
-curl -X POST -H "Content-Type: application/json" -d '{"paths": ["/devices/oc01", "/devices/oc02"]}'  http://localhost:8080/get
-```
-
-以下のようなレスポンスが表示されます。
-
-```json
-[
-  {
-    "source": ":9339",
-    "timestamp": 1673360105000000000,
-    "time": "2023-01-10T23:15:05+09:00",
-    "updates": [
-      {
-        "Path": "devices/device[name=oc01]",
-        "values": {
-          "devices/device": {
-            "Interface": {
-              "Ethernet1": {
-                "AdminStatus": 1,
-                "Description": "awesome interface!!",
-                "Enabled": false,
-                "Mtu": 9000,
-                "Name": "Ethernet1",
-                "OperStatus": 1,
-                "Subinterface": {
-                  "100": {
-                    "AdminStatus": 1,
-                    "Ifindex": 1,
-                    "Index": 100,
-                    "Name": "Ethernet1.100",
-                    "OperStatus": 1
-                  },
-                  ...
-                },
-                ...
-              },
-              ...
-            },
-            "Vlan": {
-              "100": {
-                "Member": [],
-                "Name": "VLAN100",
-                "Status": 1,
-                "Tpid": 0,
-                "VlanId": 100
-              },
-              ...
-```
-
-httpインターフェースを使用した場合のレスポンスは以下です。
-```json
-[
-    {
-        "Interface": {
-            "Ethernet1": {
-                "AdminStatus": 1,
-                "Description": "",
-                "Enabled": false,
-                "Mtu": 9000,
-                "Name": "Ethernet1",
-                "OperStatus": 1,
-                "SubInterface": {
-                    "100": {
-                        "AdminStatus": 1,
-                        "Ifindex": 1,
-                        "Index": 100,
-                        "Name": "Ethernet1.100",
-                        "OperStatus": 1
-                    }
-                },
-                "Subinterface": {},
-                "Type": 80
-            },
-            "Ethernet2": {
-                "AdminStatus": 1,
-                "Description": "",
-                "Enabled": false,
-                "Mtu": 9000,
-                "Name": "Ethernet2",
-                "OperStatus": 1,
-                "Subinterface": {},
-                "Type": 80
-            },
-            "Ethernet3": {
-                "AdminStatus": 1,
-                "Description": "",
-                "Enabled": false,
-                "Mtu": 9000,
-                "Name": "Ethernet3",
-                "OperStatus": 1,
-                "Subinterface": {},
-                "Type": 80
-            }
-        },
-        "Vlan": {
-            "100": {
-                "Member": [],
-                "Name": "VLAN100",
-                "Status": 1,
-                "Tpid": 0,
-                "VlanId": 100
-            }
-        }
-    },
-    {
-        "Interface": {
-            "Ethernet1": {
-                "AdminStatus": 1,
-                "Description": "",
-                "Enabled": false,
-                "Mtu": 9000,
-                "Name": "Ethernet1",
-                "OperStatus": 1,
-                "SubInterface": {
-                    "100": {
-                        "AdminStatus": 1,
-                        "Ifindex": 1,
-                        "Index": 100,
-                        "Name": "Ethernet1.100",
-                        "OperStatus": 1
-                    }
-                },
-                "Subinterface": {},
-                "Type": 80
-            },
-            "Ethernet2": {
-                "AdminStatus": 1,
-                "Description": "",
-                "Enabled": false,
-                "Mtu": 9000,
-                "Name": "Ethernet2",
-                "OperStatus": 1,
-                "Subinterface": {},
-                "Type": 80
-            },
-            "Ethernet3": {
-                "AdminStatus": 1,
-                "Description": "",
-                "Enabled": false,
-                "Mtu": 9000,
-                "Name": "Ethernet3",
-                "OperStatus": 1,
-                "Subinterface": {},
-                "Type": 80
-            }
-        },
-        "Vlan": {
-            "100": {
-                "Member": [],
-                "Name": "VLAN100",
-                "Status": 1,
-                "Tpid": 0,
-                "VlanId": 100
-            }
-        }
-    }
-]
-```
-
-レスポンスを確認すると、oc01とoc02の両方の装置エミュレータに対して、VLAN ID=100のVLAN定義とVLANサブインターフェースが設定されていることが分かります。
-また、これらの装置コンフィグの変更内容はチュートリアル向けに作成したステータス用のGitレポジトリに対してコミット・プッシュされています。ステータス用のGitレポジトリのメインブランチのHEADを見ると、変更が保存されていることが確認できます。
-
-
-## ローカルKubernetesクラスタの削除
-
-このチュートリアルで作成したローカルのKubernetesクラスタを削除するには、以下のコマンドを実行してください。
-
-```bash
-kind delete cluster
-```
-
-プライベートレポジトリのアクセス用に作成したPATは、不要であれば忘れずに削除しましょう。
+### 本項で使用している外部ツール
+- [OTDN-emulator](https://github.com/opennetworkinglab/ODTN-emulator)

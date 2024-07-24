@@ -3,517 +3,409 @@ title: "Getting Started"
 linkTitle: "Getting Started"
 weight: 1
 description: >
-  Get started with Kuesta.
+  Let's move K-SOT!
 ---
 
-This tutorial shows you how to
+In this tutorial, you will build K-SOT and check its operation by following the steps below.
 
-1. Create a local Kubernetes cluster.
-2. Install Kuesta.
-3. Run device emulator.
-4. Create new service and configure the device emulators by GitOps.
+1. Create a local Kubernetes cluster
+2. Create a Github repository for verification
+3. Install K-SOT and configure various files
+4. Start up the device emulator
+5. Deploy K-SOT
+6. Operation check
 
+## Advance preparation
 
-## Prerequisites
+1. Install [golang (v1.21.0+))](https://go.dev/doc/install). You will need it to write the device configuration derivation logic.
+2. Install [docker (v20.10.24+)](https://docs.docker.com/engine/install). Required to run KIND.
+3. Install [kind (v0.12.0+)](https://kind.sigs.k8s.io/docs/user/quick-start/). Used to build local Kubernetes clusters.
+4. Install [kubectl (v1.25.4+)](https://kubernetes.io/docs/tasks/tools/). Used to execute commands against a Kubernetes cluster.
 
-1. [Install golang (v1.20.4+)](https://go.dev/doc/install) to use controller-tools.
-2. [Install docker (v20.10.24+)](https://docs.docker.com/engine/install) to use cluster in kind.
-3. [Install kind (v0.12.0+)](https://kind.sigs.k8s.io/docs/user/quick-start/) to set up local Kubernetes cluster.
-4. [Install kubectl (v1.25.4+)](https://kubernetes.io/docs/tasks/tools/) to run commands against Kubernetes clusters.
-5. [Install cue (v0.4.x)](https://cuelang.org/docs/install/) to run Kuesta installation script.
-6. [Install gnmic (v0.26.0+)](https://gnmic.kmrd.dev/install/) to perform gNMI request to kuesta server.
+## 1. Create a local Kubernetes cluster
 
-
-## Create a local Kubernetes cluster
-
-Create a local Kubernetes cluster with kind.
+Run the following command to start a local Kubernetes cluster.
 
 ```bash
-kind create cluster
+kind create cluster --name ksot-started
 ```
 
-You can check that the cluster was successfully created by running:
+When execution is complete, confirm that the Kubernetes cluster has been successfully created by running the following command.
 
 ```bash
 kubectl cluster-info
 ```
 
-Then you will see an output similar to the following that confirms your local cluster is running:
+If you see output similar to the following, the local cluster is working properly.
 
-```
+```bash
 Kubernetes control plane is running at https://127.0.0.1:52096
 CoreDNS is running at https://127.0.0.1:52096/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ```
 
-## Set up GitHub source repositories for testing
 
-To configure network devices using Kuesta's GitOps, you need to set up 2 GitHub repositories. One is for
-the configuration source repository, and the other is for the update history of network devices' actual configuration status.
-You can easily set up these repositories using [Kuesta Example](https://github.com/nttcom/kuesta-example) repository as a template.
-Repository must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character.
+## 2. Create a Github repository for verification
 
-Run the following 2 times to create the repository pair:
+In order for K-SOT to manage the configuration of network devices using Github, a GitHub repository must be created.
+Using the [K-SOT Example](https://github.com/nttcom/ksot-example) repository as a template, these repositories can be easily created.
 
-1. Click **Use this template** button of [Kuesta Example repository](https://github.com/nttcom/kuesta-example).
+Create a GitHub repository by doing the following
 
-2. Select a name for your new repository and click **Create repository from template**. You can choose either public or private whichever you prefer.
+1. Click on the **Use this template** button in the [K-SOT Example](https://github.com/nttcom/ksot-example) repository.
+
+2. Enter a repository name and click the **Create repository from template** button. You can choose to make the repository public or private as you like. In this case, set the repository owner to the user's account and the repository name to ksot-example.
 
 
-## Install Kuesta and sample resources
-
-To install Kuesta and sample resources like device drivers and emulators, just run cue script:
-
+## 3. Install K-SOT and configure various files
+### Clone the K-SOT repository and initialize submodules.
+Repository clone
 ```bash
-git clone https://github.com/nttcom/kuesta.git
-cd kuesta/tool/install
-cue install
+git clone https://github.com/nttcom/ksot.git
+```
+Submodule initialization
+```bash
+git submodule update --init --recursive
 ```
 
-Provide required parameters according to the instructions:
-The `GitHub repository for config` `GitHub repository for status` should specify each of the two Github repositories for verification that you have created.
+### Configuration of env file
+Place the following env file in the K-SOT repository cloned above.
 
+/.env
 ```bash
-GitHub repository for config: https://github.com/<your_org>/<your_config_repo>
-GitHub repository for status: https://github.com/<your_org>/<your_status_repo>
-GitHub username: <your_username>
-GitHub private access token: <your_private_access_token>
-Are these git repositories private? (yes|no): yes
-Do you need sample driver and emulator for trial?: (yes|no) yes
-
----
-GitHub Config Repository: https://github.com/<your_org>/<your_config_repo>
-GitHub Status Repository: https://github.com/<your_org>/<your_status_repo>
-GitHub Username: <your_username>
-GitHub Access Token: ***
-Use Private Repo: true
-
-Image Registry: ghcr.io/nttcom/kuesta
-Version: latest
-Deploy sample driver and emulator: true
----
-
-Continue? (yes|no) yes
+KIND_NAME=ksot-started
+GITHUB_REPO_URL=https://{GithubUserName}:{GithubUserToken}@github.com/{GithubUserName}/ksot-example
+GITHUB_USER_NAME={GithubUserName}
+GITHUB_USER_MAIL={GithubMailAddress}
 ```
 
-For Kuesta to perform git-push and create pull-request, you need to prepare a GitHub [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) (PAT) and provide it in the installation(classic is recommended).
-Since PAT provided here is stored only in Secret resources on your local Kubernetes cluster, you can remove them safely and completely by [cleaning up your local cluster](/docs/getting-started/#clean-up).
-
-After running an installation script, you can see what is installed by running `kubectl` commands:
-
-1: Custom Resource Definitions(CRDs):
+/github-server/config/overlays/test/.env
 ```bash
-kubectl get customresourcedefinitions.apiextensions.k8s.io
-````
-
-```bash
-NAME                                        CREATED AT
-buckets.source.toolkit.fluxcd.io            2023-01-10T06:31:20Z
-certificaterequests.cert-manager.io         2023-01-10T06:31:19Z
-certificates.cert-manager.io                2023-01-10T06:31:19Z
-challenges.acme.cert-manager.io             2023-01-10T06:31:19Z
-clusterissuers.cert-manager.io              2023-01-10T06:31:19Z
-devicerollouts.kuesta.hrk091.dev            2023-01-10T06:43:30Z
-gitrepositories.source.toolkit.fluxcd.io    2023-01-10T06:31:20Z
-helmcharts.source.toolkit.fluxcd.io         2023-01-10T06:31:20Z
-helmrepositories.source.toolkit.fluxcd.io   2023-01-10T06:31:20Z
-issuers.cert-manager.io                     2023-01-10T06:31:19Z
-ocdemoes.kuesta.hrk091.dev                  2023-01-10T06:43:36Z
-ocirepositories.source.toolkit.fluxcd.io    2023-01-10T06:31:20Z
-orders.acme.cert-manager.io                 2023-01-10T06:31:19Z
+GITHUB_REPO_URL=https://{GithubUserName}:{GithubUserToken}@github.com/{GithubUserName}/ksot-example
 ```
 
-Some CRDs belonging to `kuesta.hrk091.dev`, `source.toolkit.fluxcd.io`, `cert-manager.io` are installed.
+### Configuration of the YANG
+#### YANG settings for equipment
+Acquire all YANG in [YANG Folder]( https://github.com/opennetworkinglab/ODTN-emulator/tree/master/emulator-oc-cassini/yang/openconfig-odtn) of [ODTN-emulator](https://github.com/opennetworkinglab/ODTN-emulator), which is the device to be managed in this article. Create a folder (name: cassini) under ```nb-server/pkg/tf/yang/devices`` and place the YANG files you just acquired.
+#### Setting up YANG for services
+Create a folder (name: transceivers) under ``nb-server/pkg/tf/yang/devices`` and place the yang files with the following contents in it.
 
-
-2: Pods:
-```bash
-kubectl get pods -A | grep -v 'kube-system'
-```
-
-```bash
-NAMESPACE                NAME                                                  READY   STATUS    RESTARTS   AGE
-cert-manager             cert-manager-7475574-t7qlm                            1/1     Running   0          12m
-cert-manager             cert-manager-cainjector-d5dc6cd7f-wbh6r               1/1     Running   0          12m
-cert-manager             cert-manager-webhook-6868bd8b7-kc85s                  1/1     Running   0          12m
-device-operator-system   device-operator-controller-manager-5d8648469b-57x4l   2/2     Running   0          11s
-flux-system              source-controller-7ff779586b-wsgf7                    1/1     Running   0          12m
-kuesta-getting-started   gnmi-fake-oc01-79d4d679b4-tvm78                       1/1     Running   0          10s
-kuesta-getting-started   gnmi-fake-oc02-69d9cc664d-56bsz                       1/1     Running   0          10s
-kuesta-getting-started   subscriber-oc01                                       1/1     Running   0          9s
-kuesta-getting-started   subscriber-oc02                                       1/1     Running   0          9s
-kuesta-system            kuesta-aggregator-7586999c47-jj7m4                    1/1     Running   0          27s
-kuesta-system            kuesta-server-85fc4f8646-kq72c                        1/1     Running   0          27s
-local-path-storage       local-path-provisioner-9cd9bd544-lk9w9                1/1     Running   0          16m
-provisioner-system       provisioner-controller-manager-7675d487c8-w6f7x       1/2     Running   0          17s
-```
-
-When all pods show Running status, you are ready to continue.
-
-Kuesta core services are deployed in the following namespaces:
-
-- kuesta-system
-  - Kuesta Server which provides core features and serves API.
-- provisioner-system
-  - Kubernetes custom operator used for GitOps and multi-device transaction management.
-- flux-system
-  - Flux source-controller and Custom Resources to integrate with manifest sources.
-- cert-manager
-  - Act as a private CA and issue certificates for mTLS.
-
-The resources for this getting-started are deployed as well in the following namespaces:
-
-- device-operator-system
-  - Kubernetes custom operator as a device driver to configure device emulator.
-- kuesta-getting-started
-  - Device emulators for this getting started, and Kubernetes custom resources to trigger device configuration.
-
-Following 2 pods are device emulators which can be configured by OpenConfig over gNMI, named `oc01` and `oc02`.
-
-```bash
-kuesta-getting-started   gnmi-fake-oc01-79d4d679b4-tvm78                       1/1     Running   0          10s
-kuesta-getting-started   gnmi-fake-oc02-69d9cc664d-56bsz                       1/1     Running   0          10s
-```
-
-If you want to check what configurations are stored in these emulators, you can easily do it
-by port-forwarding and requesting to these emulator pods as follows:
-
-```bash
-# Get oc01 emulator's configuration
-kubectl -n kuesta-getting-started port-forward svc/gnmi-fake-oc01 9339:9339
-gnmic -a :9339 -u admin -p admin get --path "" --encoding JSON --skip-verify
-```
-
-
-## Request Service configuration and run GitOps
-
-A **Service** is a abstracted high-level model of the network configuration, and you can configure multiple devices
-by creating/updating Services.
-
-In the sample repository there is a sample Service named `oc-circuit`, you can try it as a demonstration.
-Service is written by CUE. For example, `oc-circuit` service is as follows:
-
-```cue
-package oc_circuit
-
-import (
-	ocdemo "github.com/hrk091/kuesta-testdata/pkg/ocdemo"
-)
-
-#Input: {
-	// kuesta:"key=1"
-	vlanID: uint32
-	endpoints: [...{
-		device: string
-		port:   uint32
-	}]
-}
-
-#Template: {
-	input: #Input
-
-	output: devices: {
-		for _, ep in input.endpoints {
-			"\(ep.device)": config: {
-				ocdemo.#Device
-
-				let _portName = "Ethernet\(ep.port)"
-				Interface: "\(_portName)": SubInterface: "\(input.vlanID)": {
-					Ifindex:     ep.port
-					Index:       input.vlanID
-					Name:        "\(_portName).\(input.vlanID)"
-					AdminStatus: 1
-					OperStatus:  1
-				}
-
-				Vlan: "\(input.vlanID)": {
-					VlanId: input.vlanID
-					Name:   "VLAN\(input.vlanID)"
-					Status: ocdemo.#Vlan_Status_ACTIVE
-					Tpid:   ocdemo.#OpenconfigVlanTypes_TPID_TYPES_UNSET
-				}
+```yang
+module transceivers {
+    namespace "tf-ksot/transceivers";
+	prefix ts;
+	grouping transceivers-top {
+		list transceivers {
+			key "name";
+			leaf name {
+				type string;
+			}
+			leaf-list  up {
+				type string;
+			}
+			leaf-list down {
+				type string;
 			}
 		}
 	}
+    uses transceivers-top;
 }
 ```
 
-The `oc-circuit` Service will conduct mapping from `#Template.input` (Service config) to the `#Template.output` (multiple network device configs) as defined in `#Template`, then it will generate simple vlan and vlan sub-interface configurations.
-To use `oc-circuit` Service, you need to provide vlanID and multiple device ports according to the `#Input` type definition.
+### Configuration of equipment configuration derivation package
+```nb-server/pkg/tf/transceivers.go```with the following contents.
+```go
+package tf
 
-You can create the `oc-circuit` Service by the following steps:
+import (
+	"encoding/json"
+	"fmt"
 
-1: Create a request json file named `oc-circuit-vlan100.json` with the following content:
+	"github.com/nttcom-ic/ksot/nb-server/pkg/model/pathmap"
+)
 
-```json
-{
-    "vlanID": 100,
-    "endpoints": [
-        {
-            "device": "oc01",
-            "port": 1
-        },
-        {
-            "device": "oc02",
-            "port": 1
-        }
-    ]
+type Transceiver struct {
+	Name string   `json:"name"`
+	Nos  string   `json:"nos"`
+	Up   []string `json:"up"`
+	Down []string `json:"down"`
+}
+type Transceivers map[string][]Transceiver
+
+func TfTransceivers(ts interface{}) (map[string]pathmap.PathMapInterface, error) {
+	fmt.Println("hello")
+	mapByte, err := json.Marshal(ts)
+	if err != nil {
+		return nil, err
+	}
+	var transceivers Transceivers
+	if err := json.Unmarshal(mapByte, &transceivers); err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	results := make(map[string]pathmap.PathMapInterface)
+	fmt.Println("tflogic: ", transceivers)
+	for _, devices := range transceivers {
+		for _, device := range devices {
+			result, err := pathmap.NewPathMap(map[string]interface{}{})
+			if err != nil {
+				return nil, err
+			}
+			for _, v := range device.Up {
+				path := fmt.Sprintf("/openconfig-platform:components/component[name=%v]/openconfig-platform-transceiver:transceiver/config/enabled", v)
+				err = result.SetValue(path, true, map[string]string{})
+				if err != nil {
+					return nil, err
+				}
+			}
+			for _, v := range device.Down {
+				path := fmt.Sprintf("/openconfig-platform:components/component[name=%v]/openconfig-platform-transceiver:transceiver/config/enabled", v)
+				err = result.SetValue(path, false, map[string]string{})
+				if err != nil {
+					return nil, err
+				}
+			}
+			results[device.Name] = result
+		}
+	}
+	fmt.Println("check: ", results)
+	return results, nil
 }
 ```
-When using the http interface, please create the following JSON instead of the above JSON. (Specify the path of the service in "path" and the value of the service to be submitted in "value.)
+```nb-server/pkg/tf/tf.go``` to the following content.
+```go
+package tf
 
+import (
+	"github.com/nttcom-ic/ksot/nb-server/pkg/model"
+)
+
+var TfLogic = model.NewPathMapLogic()
+
+func init() {
+	// User needs to create a function to generate a pathmap and add it to the MAP.
+	// Example.
+	// TfLogic["serviceName"] = serviceName
+	TfLogic["transceivers"] = TfTransceivers
+}
+```
+
+## 4. Start up the device emulator
+Add an env file with emulator connection information.
+/sb-server/config/overlays/test/.env
+```bash
+cassini=root
+```
+
+Launch [OTDN-emulator](https://github.com/opennetworkinglab/ODTN-emulator) with the following command.
+```bash
+docker pull onosproject/oc-cassini:0.21
+docker run -it -d --name odtn-emulator_openconfig_cassini_1 -p 11002:830 onosproject/oc-cassini:0.21
+```
+
+Make sure the container is up and running as follows.
+```bash
+% docker ps
+CONTAINER ID  IMAGE             COMMAND          CREATED    STATUS    PORTS                   NAMES
+52da5c9f1c79  onosproject/oc-cassini:0.21  "sh /root/script/pus…"  4 hours ago  Up 4 hours  22/tcp, 8080/tcp, 0.0.0.0:11002->830/tcp  odtn-emulator_openconfig_cassini_1
+```
+
+Create ```sb-server/connect.json``` in the K-SOT repository to add connection information from the controller to [OTDN-emulator](https://github.com/opennetworkinglab/ODTN-emulator) and save it with the following contents.
 ```json
 {
-    "path": "/services/oc_circuit/100",
-    "value": {
-        "vlanID": 100,
-        "endpoints": [
+    "cassini": {
+        "ip": "host.docker.internal",
+        "port": 11002,
+        "username": "root",
+        "hostKeyVerify": false,
+        "if": "netconf"
+    }
+}
+```
+
+## 5. Deploy K-SOT
+Execute the following command in the root of the K-SOT repository.
+```bash
+make getting-started
+```
+After execution, check the pods running with ```kubectl get pod`` and you will see the following three pods have been created.
+
+```bash
+NAMESPACE            NAME                                                 READY   STATUS    RESTARTS   AGE
+default              ksot-github-deployment-766b6ff499-72zkr              1/1     Running   0          24s
+default              ksot-nb-deployment-967757888-dqzw7                   1/1     Running   0          24s
+default              ksot-sb-deployment-6d89c6f85c-zksl5                  1/1     Running   0          24s
+...
+```
+
+## 6. Operation check
+### Implementing port-forwarding
+First, port-forwarding should be performed on the k8s service that will be the Northbound.
+
+```bash
+kubectl port-forward svc/ksot-nb-service 8080:8080
+```
+
+### Get equipment information.
+Perform ```PUT: http://localhost:8080/sync/devices``` to reflect the current device configuration in the Github repository.
+It is successful if the following files are created in ``Devices/cassini`` of the Github repository for verification.
+- actual.json: configuration obtained from the actual device
+- ref.json: parameters set from each service (default value is empty JSON)
+- set.json: settings submitted by the controller (initial values are the same as those obtained from the actual device)
+
+
+### Service Creation
+```POST: http://localhost:8080/services``` is executed with the following JSON as the body, the service specified in the body is created, and the device settings are changed.
+```JSON
+{
+    "transceivers": {
+        "transceivers:transceivers":  [
             {
-                "device": "oc01",
-                "port": 1
-            },
+                "name": "cassini",
+                "up": [],
+                "down": [
+                    "oe1",
+                    "oe2",
+                ]
+            }
+        ]
+    }
+}
+```
+Make sure the following files are created in ``Services/transceivers`` in the verification Github repository.
+- input.json: the value of the submitted service
+- output.json: xpath and corresponding values for the device whose configuration you have changed
+
+### Get equipment information (after service creation)
+Perform ```PUT: http://localhost:8080/sync/devices``` to reflect the current device configuration in the Github repository.
+The ``Devices/cassini/actual.json`` in the Github repository for verification is updated as follows, and the transceivers in the specified location of [OTDN-emulator](https://github.com/opennetworkinglab/ODTN-emulator) are down. The ``Devices/cassini/actual.json`` is updated as follows.
+```diff
+{
+...
+				"name": "oe1",
+				"config": {
+					"name": "oe1"
+				},
+				"state": {
+					"type": "openconfig-platform-types:TRANSCEIVER",
+					"empty": false
+				},
+				"openconfig-platform-transceiver:transceiver": {
+					"config": {
+						- "enabled": true,
+						+  "enabled": false,
+						"form-factor-preconf": "openconfig-transport-types:CFP2_ACO"
+					}
+				}
+...
+				"name": "oe2",
+				"config": {
+					"name": "oe2"
+				},
+				"state": {
+					"type": "openconfig-platform-types:TRANSCEIVER",
+					"empty": false
+				},
+				"openconfig-platform-transceiver:transceiver": {
+					"config": {
+						- "enabled": true,
+						+  "enabled": false
+						"form-factor-preconf": "openconfig-transport-types:CFP2_ACO"
+					}
+				}
+...
+}
+```
+
+### Updating services
+Execute ``PUT: http://localhost:8080/services`` with the following JSON as the body, update the service specified in the body, and change the device settings.
+In this case, we will update the oe1 transceiver.
+```JSON
+{
+    "transceivers": {
+        "transceivers:transceivers":  [
             {
-                "device": "oc02",
-                "port": 1
+                "name": "cassini",
+                "up": [
+					"oe1",
+				],
+                "down": [
+                    "oe2",
+                ]
             }
         ]
     }
 }
 ```
 
-This sample Service requests both oc01 and oc02 device emulators to create a VLAN sub-interface with vlanID=100 on port 1.
-
-2: Port-forward to the kuesta-server Pod running on your local Kubernetes.
-
-```bash
-kubectl -n kuesta-system port-forward svc/kuesta-server 9339:9339
+### Get equipment information (after service update)
+Perform ```PUT: http://localhost:8080/sync/devices``` to reflect the current equipment configuration in the Github repository.
+The  ```Devices/cassini/actual.json``` in the Github repository for verification is updated as follows, and the transceivers in the specified location of [OTDN-emulator](https://github.com/opennetworkinglab/ODTN-emulator) are updated. The  ```Devices/cassini/actual.json``` is updated as follows
+```diff
+{
+...
+				"name": "oe1",
+				"config": {
+					"name": "oe1"
+				},
+				"state": {
+					"type": "openconfig-platform-types:TRANSCEIVER",
+					"empty": false
+				},
+				"openconfig-platform-transceiver:transceiver": {
+					"config": {
+						+  "enabled": true,
+						- "enabled": false,
+						"form-factor-preconf": "openconfig-transport-types:CFP2_ACO"
+					}
+				}
+...
+}
 ```
 
-If the http interface is used, the following is the case.
+### delete service.
+```DELETE: http://localhost:8080/services?name=transceivers```. Delete the service with the name specified in the query parameters and change the configuration of the device.
+Check the ``Services/transceivers`` folder in the verification Github repository as it will disappear.
 
-```bash
-kubectl -n kuesta-system port-forward svc/kuesta-server 8080:8080
+### Get device information (after deleting the service)
+Perform ```PUT: http://localhost:8080/sync/devices``` to reflect the current equipment configuration in the Github repository.
+The  ```Devices/cassini/actual.json``` in the Github repository for verification will be updated as follows, and you will see that the configuration points that were submitted from the service will disappear.
+```diff
+{
+...
+				"name": "oe1",
+				"config": {
+					"name": "oe1"
+				},
+				"state": {
+					"type": "openconfig-platform-types:TRANSCEIVER",
+					"empty": false
+				},
+				"openconfig-platform-transceiver:transceiver": {
+					"config": {
+						- "enabled": true,
+						"form-factor-preconf": "openconfig-transport-types:CFP2_ACO"
+					}
+				}
+...
+				"name": "oe2",
+				"config": {
+					"name": "oe2"
+				},
+				"state": {
+					"type": "openconfig-platform-types:TRANSCEIVER",
+					"empty": false
+				},
+				"openconfig-platform-transceiver:transceiver": {
+					"config": {
+						-  "enabled": false
+						"form-factor-preconf": "openconfig-transport-types:CFP2_ACO"
+					}
+				}
+...
+}
 ```
 
-3: Send gNMI set request to kuesta-server using `gnmic`.
-
-```bash
-gnmic -a :9339 -u dummy -p dummy set --replace-path "/services/service[kind=oc_circuit][vlanID=100]" --encoding JSON --insecure --replace-file oc-circuit-vlan100.json
-```
-
-If you use the http interface, send the following POST Request to the Questa server using `curl`.
-```bash
-curl -X POST -H "Content-Type: application/json" -d @oc-circuit-vlan100.json http://localhost:8080/set
-```
-
-4: Check the PullRequest(PR) in your configuration repository on GitHub web console. Access [PR list](https://github.com/<your_org>/<your_config_repo>/pulls) then you will find the PR which titles as `[kuesta] Automated PR`. You can see what services and devices are configured by this PR on the PR comment, and their details from the `Files changed` tab.
-
-5: Before merging PR branch, it is better to monitor `DeviceRollout` resource, which conducts a device configuration rollout. Run monitor with `kubectl`:
-
-```bash
-kubectl -n kuesta-getting-started get devicerollouts.kuesta.hrk091.dev -w
-```
-
-If you see there is one `DeviceRollout` resource and its `STATUS` is `Completed`, you are ready to run GitOps delivery procedure.
-
-```bash
-NAME              PHASE     STATUS
-kuesta-testdata   Healthy   Completed
-```
-
-
-6: Merge the PR on GitHub web console, and go to the terminal where `DeviceRollout` monitor running.
-In one minute, you will see `DeviceRollout` status changes to `Running`, then changes back to `Completed` again.
-
-```bash
-NAME              PHASE     STATUS
-kuesta-testdata   Healthy   Completed
-kuesta-testdata   Healthy   Completed
-kuesta-testdata   Healthy   Running
-kuesta-testdata   Healthy   Running
-kuesta-testdata   Healthy   Running
-kuesta-testdata   Healthy   Completed
-```
-
-7: Check the updated device configuration. Get entire device config by sending gNMI get request to kuesta-server with `gnmic`:
-
-```bash
-gnmic -a :9339 -u admin -p admin get --path "/devices/device[name=oc01]" --path "/devices/device[name=oc02]" --encoding JSON --insecure
-```
-
-If you use the http interface, send the following POST Request to the Questa server using `curl`.
-
-```bash
-curl -X POST -H "Content-Type: application/json" -d '{"paths": ["/devices/oc01", "/devices/oc02"]}'  http://localhost:8080/get
-```
-
-The output displays the gNMI response payload like:
-
-```json
-[
-  {
-    "source": ":9339",
-    "timestamp": 1673360105000000000,
-    "time": "2023-01-10T23:15:05+09:00",
-    "updates": [
-      {
-        "Path": "devices/device[name=oc01]",
-        "values": {
-          "devices/device": {
-            "Interface": {
-              "Ethernet1": {
-                "AdminStatus": 1,
-                "Description": "awesome interface!!",
-                "Enabled": false,
-                "Mtu": 9000,
-                "Name": "Ethernet1",
-                "OperStatus": 1,
-                "Subinterface": {
-                  "100": {
-                    "AdminStatus": 1,
-                    "Ifindex": 1,
-                    "Index": 100,
-                    "Name": "Ethernet1.100",
-                    "OperStatus": 1
-                  },
-                  ...
-                },
-                ...
-              },
-              ...
-            },
-            "Vlan": {
-              "100": {
-                "Member": [],
-                "Name": "VLAN100",
-                "Status": 1,
-                "Tpid": 0,
-                "VlanId": 100
-              },
-              ...
-```
-
-The response when using the http interface is as follows.
-```json
-[
-    {
-        "Interface": {
-            "Ethernet1": {
-                "AdminStatus": 1,
-                "Description": "",
-                "Enabled": false,
-                "Mtu": 9000,
-                "Name": "Ethernet1",
-                "OperStatus": 1,
-                "SubInterface": {
-                    "100": {
-                        "AdminStatus": 1,
-                        "Ifindex": 1,
-                        "Index": 100,
-                        "Name": "Ethernet1.100",
-                        "OperStatus": 1
-                    }
-                },
-                "Subinterface": {},
-                "Type": 80
-            },
-            "Ethernet2": {
-                "AdminStatus": 1,
-                "Description": "",
-                "Enabled": false,
-                "Mtu": 9000,
-                "Name": "Ethernet2",
-                "OperStatus": 1,
-                "Subinterface": {},
-                "Type": 80
-            },
-            "Ethernet3": {
-                "AdminStatus": 1,
-                "Description": "",
-                "Enabled": false,
-                "Mtu": 9000,
-                "Name": "Ethernet3",
-                "OperStatus": 1,
-                "Subinterface": {},
-                "Type": 80
-            }
-        },
-        "Vlan": {
-            "100": {
-                "Member": [],
-                "Name": "VLAN100",
-                "Status": 1,
-                "Tpid": 0,
-                "VlanId": 100
-            }
-        }
-    },
-    {
-        "Interface": {
-            "Ethernet1": {
-                "AdminStatus": 1,
-                "Description": "",
-                "Enabled": false,
-                "Mtu": 9000,
-                "Name": "Ethernet1",
-                "OperStatus": 1,
-                "SubInterface": {
-                    "100": {
-                        "AdminStatus": 1,
-                        "Ifindex": 1,
-                        "Index": 100,
-                        "Name": "Ethernet1.100",
-                        "OperStatus": 1
-                    }
-                },
-                "Subinterface": {},
-                "Type": 80
-            },
-            "Ethernet2": {
-                "AdminStatus": 1,
-                "Description": "",
-                "Enabled": false,
-                "Mtu": 9000,
-                "Name": "Ethernet2",
-                "OperStatus": 1,
-                "Subinterface": {},
-                "Type": 80
-            },
-            "Ethernet3": {
-                "AdminStatus": 1,
-                "Description": "",
-                "Enabled": false,
-                "Mtu": 9000,
-                "Name": "Ethernet3",
-                "OperStatus": 1,
-                "Subinterface": {},
-                "Type": 80
-            }
-        },
-        "Vlan": {
-            "100": {
-                "Member": [],
-                "Name": "VLAN100",
-                "Status": 1,
-                "Tpid": 0,
-                "VlanId": 100
-            }
-        }
-    }
-]
-```
-
-You will find that vlan and vlan sub-interfaces of both devices oc01 and oc02 are configured correctly as implemented in the `oc-circuit` service model.
-In addition, these device config changes are committed and pushed to your status repository, you can find these device config updates from the main branch head.
-
-
-## Clean up
-
-To delete the local cluster you created for this getting-started, just run:
-
-```bash
-kind delete cluster
-```
-
-Do not forget to remove your PAT to access your private repository if no longer needed.
+### External tools used in this section
+- [OTDN-emulator](https://github.com/opennetworkinglab/ODTN-emulator)
