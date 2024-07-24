@@ -1,6 +1,6 @@
-# Kuesta Website
+# KSOT Website
 
-This repo contains the code of the [Kuesta documentation website](nttcom.github.io/kuesta-website),
+This repo contains the code of the [ksot documentation website](nttcom.github.io/ksot-website),
 built using [Hugo](https://gohugo.io/) and the [docsy](https://www.docsy.dev/) theme.
 
 ## Requirements

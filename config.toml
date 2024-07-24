@@ -1,5 +1,5 @@
 baseURL = "/"
-title = "Kuesta"
+title = "ksot"
 
 # Language settings
 contentDir = "content/en"
@@ -44,7 +44,7 @@ pygmentsStyle = "tango"
 [[menu.main]]
 name = "GitHub"
 weight = 101
-url = "https://github.com/nttcom/kuesta"
+url = "https://github.com/nttcom/ksot"
 
 
 # Configure how URLs look like per section.
@@ -66,14 +66,14 @@ id = "UA-00000000-0"
 
 [languages]
 [languages.en]
-title = "Kuesta"
+title = "ksot"
 description = "CUE-based Network IaC on Kubernetes"
 languageName ="English"
 # Weight used for sorting.
 weight = 1
 
 [languages.ja]
-title = "Kuesta"
+title = "ksot"
 description = "CUE-based Network IaC on Kubernetes"
 languageName ="Japanese"
 contentDir = "content/ja"
@@ -121,9 +121,9 @@ version = "0.0"
 url_latest_version = "https://example.com"
 
 # Repository configuration (URLs for in-page links to opening issues and suggesting changes)
-github_repo = "https://github.com/nttcom/kuesta-website"
+github_repo = "https://github.com/nttcom/ksot-website"
 # An optional link to a related project repo. For example, the sibling repository where your product code lives.
-github_project_repo = "https://github.com/nttcom/kuesta"
+github_project_repo = "https://github.com/nttcom/ksot"
 
 # Specify a value here if your content directory is not in your repo's root directory
 # github_subdir = ""
@@ -166,8 +166,8 @@ sidebar_search_disable = false
 [params.ui.feedback]
 enable = true
 # The responses that the user sees after clicking "yes" (the page was helpful) or "no" (the page was not helpful).
-yes = 'Glad to hear it! Please <a href="https://github.com/nttcom/kuesta-website/issues/new">tell us how we can improve</a>.'
-no = 'Sorry to hear that. Please <a href="https://github.com/nttcom/kuesta-website/issues/new">tell us how we can improve</a>.'
+yes = 'Glad to hear it! Please <a href="https://github.com/nttcom/ksot-website/issues/new">tell us how we can improve</a>.'
+no = 'Sorry to hear that. Please <a href="https://github.com/nttcom/ksot-website/issues/new">tell us how we can improve</a>.'
 
 # Adds a reading time to the top of each doc.
 # If you want this feature, but occasionally need to remove the Reading time from a single page, 
@@ -179,9 +179,9 @@ enable = false
 # End user relevant links. These will show up on left side of footer and in the community page if you have one.
 [[params.links.user]]
   name = "GitHub Discussions"
-  url = "https://github.com/nttcom/kuesta/discussions"
+  url = "https://github.com/nttcom/ksot/discussions"
   icon = "fab fa-github"
-  desc = "Ask questions and discuss abount Kuesta."
+  desc = "Ask questions and discuss abount ksot."
 
 #[[params.links.user]]
 #  name = "User mailing list"
@@ -201,7 +201,7 @@ enable = false
 # Developer relevant links. These will show up on right side of footer and in the community page if you have one.
 [[params.links.developer]]
   name = "GitHub"
-  url = "https://github.com/nttcom/kuesta"
+  url = "https://github.com/nttcom/ksot"
   icon = "fab fa-github"
   desc = "Development takes place here!"
 #[[params.links.developer]]
