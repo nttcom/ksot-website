@@ -67,14 +67,14 @@ id = "UA-00000000-0"
 [languages]
 [languages.en]
 title = "ksot"
-description = "CUE-based Network IaC on Kubernetes"
+description = "Network IaC on Kubernetes"
 languageName ="English"
 # Weight used for sorting.
 weight = 1
 
 [languages.ja]
 title = "ksot"
-description = "CUE-based Network IaC on Kubernetes"
+description = "Network IaC on Kubernetes"
 languageName ="Japanese"
 contentDir = "content/ja"
 time_format_default = "2006.01.02"

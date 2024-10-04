@@ -19,7 +19,7 @@ With K-SOT, the data mapping logic from the upper model to the lower model can b
 
 ## Data Management with GitHub
 
-K-SOT provides data management via GitHub for network device configurations. It is intended to be a single source of truth (SSoT) that can be trusted by declaratively describing the configuration of the entire network and versioning it in a GitHub repository
+K-SOT provides data management via GitHub for network device configurations. It is intended to be a single source of truth (SSoT) that can be trusted by declaratively describing the configuration of the entire network and versioning it in a GitHub repository.
 
 ## Components of K-SOT
 
