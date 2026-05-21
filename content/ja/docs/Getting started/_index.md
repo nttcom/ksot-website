@@ -49,13 +49,13 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ## 2. 検証用のGithubレポジトリの作成
 
 K-SOTをGithubを用いてネットワーク装置の設定を管理するには、GitHubレポジトリを作成する必要があります。
-[K-SOT Example](https://github.com/nttcom/ksot-example) レポジトリをテンプレートとして使用することで、これらのレポジトリを簡単に作成できます。
+以下の手順でGitHubレポジトリを作成してください。
 
-以下を実行して、GitHubレポジトリを作成してください。
+1. GitHubにログインし、`ksot-example` という名前で新規レポジトリを作成してください。レポジトリの公開・非公開については、好きな方を選択してください。
 
-1. [K-SOT Example](https://github.com/nttcom/ksot-example) レポジトリの **Use this template** ボタンをクリックしてください。
-
-2. レポジトリ名を入力して、 **Create repository from template** ボタンをクリックしてください。レポジトリの公開・非公開については、好きな方を選択してください。今回はレポジトリオーナーをユーザーのアカウントに設定し、レポジトリ名はksot-exampleと設定してください。
+2. 作成したレポジトリのルートに、以下の2つのフォルダを作成してください。
+   - `Devices`
+   - `Services`
 
 
 ## 3. K-SOTをインストール、各種ファイル設定
@@ -193,7 +193,7 @@ func init() {
 
 ## 4. 装置エミュレータを立ち上げる
 事前にエミュレーターの接続情報を記載したenvファイルを追加
-/sb-server/config/overlays/test/.env
+sb-server/config/overlays/test/.env
 ```bash
 cassini=root
 ```

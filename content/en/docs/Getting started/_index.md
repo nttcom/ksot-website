@@ -49,13 +49,13 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ## 2. Create a Github repository for verification
 
 In order for K-SOT to manage the configuration of network devices using Github, a GitHub repository must be created.
-Using the [K-SOT Example](https://github.com/nttcom/ksot-example) repository as a template, these repositories can be easily created.
+Follow the steps below to create the GitHub repository.
 
-Create a GitHub repository by doing the following
+1. Log in to GitHub and create a new repository named `ksot-example`. You can choose to make the repository public or private as you like.
 
-1. Click on the **Use this template** button in the [K-SOT Example](https://github.com/nttcom/ksot-example) repository.
-
-2. Enter a repository name and click the **Create repository from template** button. You can choose to make the repository public or private as you like. In this case, set the repository owner to the user's account and the repository name to ksot-example.
+2. Create the following two folders at the root of the created repository:
+   - `Devices`
+   - `Services`
 
 
 ## 3. Install K-SOT and configure various files
@@ -193,7 +193,7 @@ func init() {
 
 ## 4. Start up the device emulator
 Add an env file with emulator connection information.
-/sb-server/config/overlays/test/.env
+sb-server/config/overlays/test/.env
 ```bash
 cassini=root
 ```
